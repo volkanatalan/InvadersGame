@@ -29,19 +29,21 @@
     let deltaTime = 0
     let currentDirection = -1
     let playerPosition = { x: 0, y: 0 }
-    let playerSpeed = 15
+    const playerSpeed = 15
     const canvasCharacterRatio = 1 / 23
     const fireData = { active: false, position: { x: 0, y: 0 }, speed: 30, width: 0, height: 0 }
     let opponentGroupMovement = { x: 0, y: 0 }
     const maxOpponentGroupHorizontalMoveCount = 4
-    const opponentGroupMoveSpeed = 10
+    const opponentGroupMoveSpeed = 5
     let currentOpponentGroupHorizontalMoveCount = 0
     let currentOpponentGroupVerticalMoveCount = 0
     let isOpponentGroupMovingDown = false
     let gameStartTime = 0
 
-    const bgcolor = "#e2e2e2"; // gray
+    const bgcolor = "#000"; // black
+    const playerColor = "#fff"; // white
     const opponentColor = "#00d100"; // green
+    const fireColor = "#00cbe6"; // blue
 
     let characterSize;
     let ctx;
@@ -49,48 +51,7 @@
 
     const keyState = {};
 
-    let opponents = [
-      { initialCoordinate: { x: 2, y: 3 } },
-      { initialCoordinate: { x: 4, y: 3 } },
-      { initialCoordinate: { x: 6, y: 3 } },
-      { initialCoordinate: { x: 8, y: 3 } },
-      { initialCoordinate: { x: 10, y: 3 } },
-      { initialCoordinate: { x: 12, y: 3 } },
-      { initialCoordinate: { x: 14, y: 3 } },
-      { initialCoordinate: { x: 16, y: 3 } },
-      { initialCoordinate: { x: 18, y: 3 } },
-      { initialCoordinate: { x: 20, y: 3 } },
-      { initialCoordinate: { x: 2, y: 5 } },
-      { initialCoordinate: { x: 4, y: 5 } },
-      { initialCoordinate: { x: 6, y: 5 } },
-      { initialCoordinate: { x: 8, y: 5 } },
-      { initialCoordinate: { x: 10, y: 5 } },
-      { initialCoordinate: { x: 12, y: 5 } },
-      { initialCoordinate: { x: 14, y: 5 } },
-      { initialCoordinate: { x: 16, y: 5 } },
-      { initialCoordinate: { x: 18, y: 5 } },
-      { initialCoordinate: { x: 20, y: 5 } },
-      { initialCoordinate: { x: 2, y: 7 } },
-      { initialCoordinate: { x: 4, y: 7 } },
-      { initialCoordinate: { x: 6, y: 7 } },
-      { initialCoordinate: { x: 8, y: 7 } },
-      { initialCoordinate: { x: 10, y: 7 } },
-      { initialCoordinate: { x: 12, y: 7 } },
-      { initialCoordinate: { x: 14, y: 7 } },
-      { initialCoordinate: { x: 16, y: 7 } },
-      { initialCoordinate: { x: 18, y: 7 } },
-      { initialCoordinate: { x: 20, y: 7 } },
-      { initialCoordinate: { x: 2, y: 9 } },
-      { initialCoordinate: { x: 4, y: 9 } },
-      { initialCoordinate: { x: 6, y: 9 } },
-      { initialCoordinate: { x: 8, y: 9 } },
-      { initialCoordinate: { x: 10, y: 9 } },
-      { initialCoordinate: { x: 12, y: 9 } },
-      { initialCoordinate: { x: 14, y: 9 } },
-      { initialCoordinate: { x: 16, y: 9 } },
-      { initialCoordinate: { x: 18, y: 9 } },
-      { initialCoordinate: { x: 20, y: 9 } },
-    ]
+    let opponents = []
 
     window.onload = () => {
       const canvasContainer = document.getElementById('canvasContainer')
@@ -103,11 +64,11 @@
       ctx = canvas.getContext("2d");
 
       characterSize = canvasSize * canvasCharacterRatio
-      playerPosition = { x: canvasSize / 2 - characterSize, y: canvasSize - 2 * characterSize }
 
       fireData.width = canvasSize * (1 / 90)
       fireData.height = canvasSize * (1 / 40)
 
+      setInitialData()
       calculateInitialOpponentPositions()
 
       window.addEventListener('keydown', function (e) {
@@ -152,11 +113,63 @@
       draw()
     }
 
+    function setInitialData() {
+      currentDirection = -1
+      playerPosition = { x: canvasSize / 2 - characterSize, y: canvasSize - 2 * characterSize }
+      opponentGroupMovement = { x: 0, y: 0 }
+      currentOpponentGroupHorizontalMoveCount = 0
+      currentOpponentGroupVerticalMoveCount = 0
+      isOpponentGroupMovingDown = false
+      fireData.active = false
+      opponents = [
+        { initialCoordinate: { x: 2, y: 3 } },
+        { initialCoordinate: { x: 4, y: 3 } },
+        { initialCoordinate: { x: 6, y: 3 } },
+        { initialCoordinate: { x: 8, y: 3 } },
+        { initialCoordinate: { x: 10, y: 3 } },
+        { initialCoordinate: { x: 12, y: 3 } },
+        { initialCoordinate: { x: 14, y: 3 } },
+        { initialCoordinate: { x: 16, y: 3 } },
+        { initialCoordinate: { x: 18, y: 3 } },
+        { initialCoordinate: { x: 20, y: 3 } },
+        { initialCoordinate: { x: 2, y: 5 } },
+        { initialCoordinate: { x: 4, y: 5 } },
+        { initialCoordinate: { x: 6, y: 5 } },
+        { initialCoordinate: { x: 8, y: 5 } },
+        { initialCoordinate: { x: 10, y: 5 } },
+        { initialCoordinate: { x: 12, y: 5 } },
+        { initialCoordinate: { x: 14, y: 5 } },
+        { initialCoordinate: { x: 16, y: 5 } },
+        { initialCoordinate: { x: 18, y: 5 } },
+        { initialCoordinate: { x: 20, y: 5 } },
+        { initialCoordinate: { x: 2, y: 7 } },
+        { initialCoordinate: { x: 4, y: 7 } },
+        { initialCoordinate: { x: 6, y: 7 } },
+        { initialCoordinate: { x: 8, y: 7 } },
+        { initialCoordinate: { x: 10, y: 7 } },
+        { initialCoordinate: { x: 12, y: 7 } },
+        { initialCoordinate: { x: 14, y: 7 } },
+        { initialCoordinate: { x: 16, y: 7 } },
+        { initialCoordinate: { x: 18, y: 7 } },
+        { initialCoordinate: { x: 20, y: 7 } },
+        { initialCoordinate: { x: 2, y: 9 } },
+        { initialCoordinate: { x: 4, y: 9 } },
+        { initialCoordinate: { x: 6, y: 9 } },
+        { initialCoordinate: { x: 8, y: 9 } },
+        { initialCoordinate: { x: 10, y: 9 } },
+        { initialCoordinate: { x: 12, y: 9 } },
+        { initialCoordinate: { x: 14, y: 9 } },
+        { initialCoordinate: { x: 16, y: 9 } },
+        { initialCoordinate: { x: 18, y: 9 } },
+        { initialCoordinate: { x: 20, y: 9 } },
+      ]
+    }
+
     function draw() {
-      deltaTime = (Date.now() - lastDrawTime) / 1000
-      if (deltaTime >= 1 / 60) {  // 60 fps
-        lastDrawTime = Date.now()
-        if (isPlaying) {
+      if (isPlaying) {
+        deltaTime = (Date.now() - lastDrawTime) / 1000
+        if (deltaTime >= 1 / 60) {  // 60 fps
+          lastDrawTime = Date.now()
           ctx.fillStyle = bgcolor;
           ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -167,8 +180,8 @@
           movePlayer()
           drawPlayer()
         }
+        requestAnimationFrame(draw);
       }
-      requestAnimationFrame(draw);
     }
 
     function calculateInitialOpponentPositions() {
@@ -180,13 +193,13 @@
     function drawFire() {
       const { active, position, width, height } = fireData
       if (active) {
-        ctx.fillStyle = '#0000ff'
+        ctx.fillStyle = fireColor
         ctx.fillRect(position.x, position.y, width, height);
       }
     }
 
     function drawPlayer() {
-      ctx.fillStyle = '#ff0000'
+      ctx.fillStyle = playerColor
       ctx.fillRect(playerPosition.x, playerPosition.y, characterSize, characterSize);
     }
 
@@ -225,6 +238,55 @@
           currentOpponentGroupVerticalMoveCount++
         }
       }
+
+
+      for (let i = 0; i < opponents.length; i++) {
+        const opponent = opponents[i]
+        const opponentObj = {}
+        opponentObj.x1 = opponent.position.x + opponentGroupMovement.x
+        opponentObj.x2 = opponentObj.x1 + characterSize
+        opponentObj.y1 = opponent.position.y + opponentGroupMovement.y
+        opponentObj.y2 = opponentObj.y1 + characterSize
+
+        // Fire hit to opponent
+        if (fireData.active) {
+          const fireObj = {}
+          fireObj.x1 = fireData.position.x
+          fireObj.x2 = fireObj.x1 + fireData.width
+          fireObj.y1 = fireData.position.y
+          fireObj.y2 = fireObj.y1 + fireData.height
+          if (isObjectsTouch(opponentObj, fireObj)) {
+            opponents.splice(i, 1)
+            fireData.active = false
+            if (opponents.length === 0) {
+              // All opponents are eliminated
+              gameOver()
+              return
+            }
+          }
+        }
+
+        const playerObj = {}
+        playerObj.x1 = playerPosition.x
+        playerObj.x2 = playerObj.x1 + characterSize
+        playerObj.y1 = playerPosition.y
+        playerObj.y2 = playerObj.y1 + characterSize
+        // Player touch opponent
+        if (isObjectsTouch(opponentObj, playerObj)) {
+          gameOver()
+          return
+        }
+
+        // Opponents reach to the bottom
+        if (opponentObj.y2 >= canvasSize) {
+          gameOver()
+          return
+        }
+      };
+    }
+
+    function isObjectsTouch(obj1, obj2) {
+      return ((obj1.x1 <= obj2.x1 && obj1.x2 >= obj2.x1) || (obj1.x1 <= obj2.x2 && obj1.x2 >= obj2.x2) || (obj2.x1 <= obj1.x1 && obj2.x2 >= obj1.x1) || (obj2.x1 <= obj1.x2 && obj2.x2 >= obj1.x2)) && ((obj1.y1 <= obj2.y1 && obj1.y2 >= obj2.y1) || (obj1.y1 <= obj2.y2 && obj1.y2 >= obj2.y2) || (obj2.y1 <= obj1.y1 && obj2.y2 >= obj1.y1) || (obj2.y1 <= obj1.y2 && obj2.y2 >= obj1.y2))
     }
 
     function movePlayer() {
@@ -246,11 +308,7 @@
       const { active, position, speed } = fireData
       if (active) {
         fireData.position.y -= dp * speed * deltaTime
-        const hitOpponent = isFireHitOpponent()
-        if (hitOpponent) {
-          fireData.active = false
-          opponents.splice(hitOpponent.index, 1)
-        } else if (fireData.position.y + fireData.height < 0) {
+        if (fireData.position.y + fireData.height < 0) {
           fireData.active = false
         }
       }
@@ -266,6 +324,21 @@
         }
       };
       return false
+    }
+
+    function gameOver() {
+      isPlaying = false
+      document.getElementById('gameOverPanel').style.display = 'flex'
+    }
+
+    function replay() {
+      setInitialData()
+      calculateInitialOpponentPositions()
+      document.getElementById('gameOverPanel').style.display = 'none'
+      isPlaying = true
+      gameStartTime = Date.now()
+      lastDrawTime = Date.now()
+      draw()
     }
   </script>
 </body>
