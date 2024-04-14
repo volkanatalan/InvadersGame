@@ -32,17 +32,17 @@
     const playerSpeed = 15
     const canvasCharacterRatio = 1 / 23
     const fireData = { active: false, position: { x: 0, y: 0 }, speed: 30, width: 0, height: 0 }
-    let opponentGroupMovement = { x: 0, y: 0 }
-    const maxOpponentGroupHorizontalMoveCount = 4
-    const opponentGroupMoveSpeed = 5
-    let currentOpponentGroupHorizontalMoveCount = 0
-    let currentOpponentGroupVerticalMoveCount = 0
-    let isOpponentGroupMovingDown = false
+    let enemyGroupMovement = { x: 0, y: 0 }
+    const maxEnemyGroupHorizontalMoveCount = 4
+    const enemyGroupMoveSpeed = 5
+    let currentEnemyGroupHorizontalMoveCount = 0
+    let currentEnemyGroupVerticalMoveCount = 0
+    let isEnemyGroupMovingDown = false
     let gameStartTime = 0
 
     const bgcolor = "#000"; // black
     const playerColor = "#fff"; // white
-    const opponentColor = "#00d100"; // green
+    const enemyColor = "#00d100"; // green
     const fireColor = "#00cbe6"; // blue
 
     let characterSize;
@@ -51,7 +51,7 @@
 
     const keyState = {};
 
-    let opponents = []
+    let enemies = []
 
     window.onload = () => {
       const canvasContainer = document.getElementById('canvasContainer')
@@ -65,11 +65,11 @@
 
       characterSize = canvasSize * canvasCharacterRatio
 
-      fireData.width = canvasSize * (1 / 90)
+      fireData.width = canvasSize * (0.5 / 100)
       fireData.height = canvasSize * (1 / 40)
 
       setInitialData()
-      calculateInitialOpponentPositions()
+      calculateInitialEnemyPositions()
 
       window.addEventListener('keydown', function (e) {
         // console.log("keydown e.keyCode:", e.keyCode)
@@ -116,12 +116,12 @@
     function setInitialData() {
       currentDirection = -1
       playerPosition = { x: canvasSize / 2 - characterSize, y: canvasSize - 2 * characterSize }
-      opponentGroupMovement = { x: 0, y: 0 }
-      currentOpponentGroupHorizontalMoveCount = 0
-      currentOpponentGroupVerticalMoveCount = 0
-      isOpponentGroupMovingDown = false
+      enemyGroupMovement = { x: 0, y: 0 }
+      currentEnemyGroupHorizontalMoveCount = 0
+      currentEnemyGroupVerticalMoveCount = 0
+      isEnemyGroupMovingDown = false
       fireData.active = false
-      opponents = [
+      enemies = [
         { initialCoordinate: { x: 2, y: 3 } },
         { initialCoordinate: { x: 4, y: 3 } },
         { initialCoordinate: { x: 6, y: 3 } },
@@ -173,8 +173,8 @@
           ctx.fillStyle = bgcolor;
           ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-          moveOpponentGroup()
-          drawOpponents()
+          moveEnemyGroup()
+          drawEnemies()
           moveFire()
           drawFire()
           movePlayer()
@@ -184,9 +184,9 @@
       }
     }
 
-    function calculateInitialOpponentPositions() {
-      opponents.forEach(opponent => {
-        opponent.position = { x: opponent.initialCoordinate.x * characterSize, y: opponent.initialCoordinate.y * characterSize }
+    function calculateInitialEnemyPositions() {
+      enemies.forEach(enemy => {
+        enemy.position = { x: enemy.initialCoordinate.x * characterSize, y: enemy.initialCoordinate.y * characterSize }
       });
     }
 
@@ -203,63 +203,63 @@
       ctx.fillRect(playerPosition.x, playerPosition.y, characterSize, characterSize);
     }
 
-    function drawOpponents() {
-      opponents.forEach(opponent => {
-        ctx.fillStyle = opponentColor
-        ctx.fillRect(opponent.position.x + opponentGroupMovement.x, opponent.position.y + opponentGroupMovement.y, characterSize, characterSize);
+    function drawEnemies() {
+      enemies.forEach(enemy => {
+        ctx.fillStyle = enemyColor
+        ctx.fillRect(enemy.position.x + enemyGroupMovement.x, enemy.position.y + enemyGroupMovement.y, characterSize, characterSize);
       });
     }
 
-    function moveOpponentGroup() {
-      if (currentOpponentGroupHorizontalMoveCount % 2 === 0) {
+    function moveEnemyGroup() {
+      if (currentEnemyGroupHorizontalMoveCount % 2 === 0) {
         // Move to right
         console.log("move to right")
-        opponentGroupMovement.x += opponentGroupMoveSpeed * dp * deltaTime
+        enemyGroupMovement.x += enemyGroupMoveSpeed * dp * deltaTime
       } else {
         // Move to left
         console.log("move to left")
-        opponentGroupMovement.x -= opponentGroupMoveSpeed * dp * deltaTime
+        enemyGroupMovement.x -= enemyGroupMoveSpeed * dp * deltaTime
       }
 
-      if (isOpponentGroupMovingDown) {
+      if (isEnemyGroupMovingDown) {
         // Move to down
-        opponentGroupMovement.y += opponentGroupMoveSpeed * dp * deltaTime
-        if (opponentGroupMovement.y >= currentOpponentGroupVerticalMoveCount * characterSize) {
-          isOpponentGroupMovingDown = false
+        enemyGroupMovement.y += enemyGroupMoveSpeed * dp * deltaTime
+        if (enemyGroupMovement.y >= currentEnemyGroupVerticalMoveCount * characterSize) {
+          isEnemyGroupMovingDown = false
         }
 
       }
 
-      if ((currentOpponentGroupHorizontalMoveCount % 2 === 0 && opponentGroupMovement.x >= characterSize) || (currentOpponentGroupHorizontalMoveCount % 2 === 1 && opponentGroupMovement.x <= -characterSize)) {
-        currentOpponentGroupHorizontalMoveCount++
-        if (currentOpponentGroupHorizontalMoveCount >= maxOpponentGroupHorizontalMoveCount) {
-          currentOpponentGroupHorizontalMoveCount = 0
-          isOpponentGroupMovingDown = true
-          currentOpponentGroupVerticalMoveCount++
+      if ((currentEnemyGroupHorizontalMoveCount % 2 === 0 && enemyGroupMovement.x >= characterSize) || (currentEnemyGroupHorizontalMoveCount % 2 === 1 && enemyGroupMovement.x <= -characterSize)) {
+        currentEnemyGroupHorizontalMoveCount++
+        if (currentEnemyGroupHorizontalMoveCount >= maxEnemyGroupHorizontalMoveCount) {
+          currentEnemyGroupHorizontalMoveCount = 0
+          isEnemyGroupMovingDown = true
+          currentEnemyGroupVerticalMoveCount++
         }
       }
 
 
-      for (let i = 0; i < opponents.length; i++) {
-        const opponent = opponents[i]
-        const opponentObj = {}
-        opponentObj.x1 = opponent.position.x + opponentGroupMovement.x
-        opponentObj.x2 = opponentObj.x1 + characterSize
-        opponentObj.y1 = opponent.position.y + opponentGroupMovement.y
-        opponentObj.y2 = opponentObj.y1 + characterSize
+      for (let i = 0; i < enemies.length; i++) {
+        const enemy = enemies[i]
+        const enemyObj = {}
+        enemyObj.x1 = enemy.position.x + enemyGroupMovement.x
+        enemyObj.x2 = enemyObj.x1 + characterSize
+        enemyObj.y1 = enemy.position.y + enemyGroupMovement.y
+        enemyObj.y2 = enemyObj.y1 + characterSize
 
-        // Fire hit to opponent
+        // Fire hit to enemy
         if (fireData.active) {
           const fireObj = {}
           fireObj.x1 = fireData.position.x
           fireObj.x2 = fireObj.x1 + fireData.width
           fireObj.y1 = fireData.position.y
           fireObj.y2 = fireObj.y1 + fireData.height
-          if (isObjectsTouch(opponentObj, fireObj)) {
-            opponents.splice(i, 1)
+          if (isObjectsTouch(enemyObj, fireObj)) {
+            enemies.splice(i, 1)
             fireData.active = false
-            if (opponents.length === 0) {
-              // All opponents are eliminated
+            if (enemies.length === 0) {
+              // All enemies are eliminated
               gameOver()
               return
             }
@@ -271,14 +271,14 @@
         playerObj.x2 = playerObj.x1 + characterSize
         playerObj.y1 = playerPosition.y
         playerObj.y2 = playerObj.y1 + characterSize
-        // Player touch opponent
-        if (isObjectsTouch(opponentObj, playerObj)) {
+        // Player touch enemy
+        if (isObjectsTouch(enemyObj, playerObj)) {
           gameOver()
           return
         }
 
-        // Opponents reach to the bottom
-        if (opponentObj.y2 >= canvasSize) {
+        // Enemies reach to the bottom
+        if (enemyObj.y2 >= canvasSize) {
           gameOver()
           return
         }
@@ -314,13 +314,13 @@
       }
     }
 
-    function isFireHitOpponent() {
-      for (let i = 0; i < opponents.length; i++) {
-        const opponent = opponents[i]
+    function isFireHitEnemy() {
+      for (let i = 0; i < enemies.length; i++) {
+        const enemy = enemies[i]
         const fireXMiddlepoint = fireData.position.x + fireData.width / 2
         const fireYMiddlepoint = fireData.position.y
-        if (fireXMiddlepoint >= opponent.position.x + opponentGroupMovement.x && fireXMiddlepoint <= opponent.position.x + opponentGroupMovement.x + characterSize && fireYMiddlepoint >= opponent.position.y + opponentGroupMovement.y && fireYMiddlepoint <= opponent.position.y + opponentGroupMovement.y + characterSize) {
-          return { opponent, index: i }
+        if (fireXMiddlepoint >= enemy.position.x + enemyGroupMovement.x && fireXMiddlepoint <= enemy.position.x + enemyGroupMovement.x + characterSize && fireYMiddlepoint >= enemy.position.y + enemyGroupMovement.y && fireYMiddlepoint <= enemy.position.y + enemyGroupMovement.y + characterSize) {
+          return { enemy, index: i }
         }
       };
       return false
@@ -333,7 +333,7 @@
 
     function replay() {
       setInitialData()
-      calculateInitialOpponentPositions()
+      calculateInitialEnemyPositions()
       document.getElementById('gameOverPanel').style.display = 'none'
       isPlaying = true
       gameStartTime = Date.now()
