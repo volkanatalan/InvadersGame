@@ -52,9 +52,23 @@
       counts: { rows: 5, cols: 11 },
       spacesInDp: { vertical: 2, horizontal: 2 },
       speed: { horizontal: 5, vertical: 50 },
-      move: { delay: 5, lengthInDp: 1, length: 0, lastEnemyMoveTime: 0, lastMovedEnemyIndex: -1, toRight: true, toDown: false, willChangeDirection: false }
+      move: { delay: 5, lengthInDp: 1, length: 0, lastEnemyMoveTime: 0, lastMovedEnemyIndex: -1, toRight: true, toDown: false, willChangeDirection: false },
+      fire: {
+        speed: 120,
+        sizeInDp: { width: 0.5, height: 1.5 },
+        size: { width: 0, height: 0 },
+      },
+      fires: []
     }
     let enemyMovementArea = { left: 0, right: 0, top: 0, bottom: 0 }
+    const levels = [
+      {
+        enemyFireMaxDelay: 3000
+      }
+    ]
+    let currentLevelIndex = 0
+    let currentLevel = levels[0]
+    let nextEnemyFireTime = 0
 
     let characterSize;
     let ctx;
@@ -72,10 +86,9 @@
 
       enemyMovementArea = { left: 3 * dp, right: canvasSize - 3 * dp, top: 3 * dp, bottom: canvasSize - 3 * dp }
       enemyGroup.move.length = enemyGroup.move.lengthInDp * dp
+      enemyGroup.fire.size = { width: enemyGroup.fire.sizeInDp.width * dp, height: enemyGroup.fire.sizeInDp.height * dp }
       characterSize = ((enemyMovementArea.right - enemyMovementArea.left) - (enemyGroup.counts.cols - 1) * (enemyGroup.spacesInDp.horizontal * dp)) / (enemyGroup.counts.cols + 2)
-
-      player.fire.size.width = player.fire.sizeInDp.width * dp
-      player.fire.size.height = player.fire.sizeInDp.height * dp
+      player.fire.size = { width: player.fire.sizeInDp.width * dp, height: player.fire.sizeInDp.height * dp }
 
 
       window.addEventListener('keydown', function (e) {
@@ -122,19 +135,22 @@
       player.currentDirection = Direction.NONE
       player.position = { x: canvasSize / 2 - characterSize, y: canvasSize - 2 * characterSize }
       enemyGroup.move = { ...enemyGroup.move, lastMovedEnemyIndex: -1, toRight: true, toDown: false, willChangeDirection: false, }
+      enemyGroup.fires = []
       player.fire.active = false
       generateEnemyData()
       isPlaying = true
-      enemyGroup.move.lastEnemyMoveTime = Date.now()
-      gameStartTime = Date.now()
-      lastDrawTime = Date.now()
+      const now = Date.now()
+      enemyGroup.move.lastEnemyMoveTime = now
+      gameStartTime = now
+      lastDrawTime = now
+      nextEnemyFireTime = now + getRandomInt(currentLevel.enemyFireMaxDelay)
     }
 
     function draw() {
       if (isPlaying) {
         deltaTime = (Date.now() - lastDrawTime) / 1000
         // console.log("deltaTime:", deltaTime)
-        console.log("passed time since last draw:", Date.now() - lastDrawTime)
+        // console.log("passed time since last draw:", Date.now() - lastDrawTime)
         lastDrawTime = Date.now()
         ctx.fillStyle = bgcolor;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -143,6 +159,9 @@
         drawEnemies()
         moveFire()
         drawFire()
+        enemyFire()
+        moveEnemyFire()
+        drawEnemyFires()
         movePlayer()
         drawPlayer()
         requestAnimationFrame(draw);
@@ -160,6 +179,56 @@
         }
       }
       enemies = _enemies
+    }
+
+
+    function enemyFire() {
+      const now = Date.now()
+      if (now >= nextEnemyFireTime) {
+        const enemy = enemies[getRandomInt(enemies.length - 1)]
+        const fire = { size: enemyGroup.fire.size }
+        fire.position = { x: enemy.position.x + characterSize / 2 - fire.size.width / 2, y: enemy.position.y }
+        enemyGroup.fires.push(fire)
+        nextEnemyFireTime = now + getRandomInt(currentLevel.enemyFireMaxDelay)
+      }
+    }
+
+    function moveEnemyFire() {
+      for (let i = 0; i < enemyGroup.fires.length; i++) {
+        const fire = enemyGroup.fires[i];
+        fire.position.y += deltaTime * enemyGroup.fire.speed
+        const firePosition = { x1: fire.position.x, x2: fire.position.x + fire.size.width, y1: fire.position.y, y2: fire.position.y + fire.size.height }
+
+        // Remove fire if goes outside of the canvas
+        if (fire.position.y > canvasSize) {
+          enemyGroup.fires.splice(i, 1)
+          i--
+        }
+        // If fire hits player's fire, remove both fires
+        else if (player.fire.active && isObjectsTouch(
+          firePosition,
+          { x1: player.fire.position.x, x2: player.fire.position.x + player.fire.size.width, y1: player.fire.position.y, y2: player.fire.position.y + player.fire.size.height }
+        )) {
+          player.fire.active = false
+          enemyGroup.fires.splice(i, 1)
+          i--
+        }
+        // If fire hits player, game is over
+        else if (isObjectsTouch(
+          firePosition,
+          { x1: player.position.x, x2: player.position.x + characterSize, y1: player.position.y, y2: player.position.y + characterSize }
+        )) {
+          gameOver()
+        }
+      }
+    }
+
+    function drawEnemyFires() {
+      for (let i = 0; i < enemyGroup.fires.length; i++) {
+        const fire = enemyGroup.fires[i];
+        ctx.fillStyle = fireColor
+        ctx.fillRect(fire.position.x, fire.position.y, fire.size.width, fire.size.height);
+      }
     }
 
     function drawFire() {
@@ -319,6 +388,10 @@
       setInitialData()
       document.getElementById('gameOverPanel').style.display = 'none'
       draw()
+    }
+
+    function getRandomInt(max) {
+      return Math.round(Math.random() * max);
     }
   </script>
 </body>
