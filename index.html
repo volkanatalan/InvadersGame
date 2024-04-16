@@ -344,9 +344,15 @@
 
     function movePlayer() {
       if (player.currentDirection === Direction.LEFT) {
-        player.position = { x: player.position.x - dp * player.speed * deltaTime, y: player.position.y }
+        const limit = 0 - characterSize / 2
+        let x = player.position.x - dp * player.speed * deltaTime
+        x = x < limit ? limit : x
+        player.position.x = x
       } else if (player.currentDirection === Direction.RIGHT) {
-        player.position = { x: player.position.x + dp * player.speed * deltaTime, y: player.position.y }
+        const limit = canvasSize - characterSize / 2
+        let x = player.position.x + dp * player.speed * deltaTime
+        x = x > limit ? limit : x
+        player.position.x = x
       }
     }
 
