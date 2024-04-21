@@ -305,10 +305,10 @@
                 if (shouldCheck) {
                   if (this.polyPolyCollision(gameObject1.data.collider.vertecies, gameObject2.data.collider.vertecies)) {
                     if (gameObject1.onCollide) {
-                      gameObject1.onCollide(gameObject2)
+                      gameObject1.onCollide({ gameObject: gameObject2 })
                     }
                     if (gameObject2.onCollide) {
-                      gameObject2.onCollide(gameObject1)
+                      gameObject2.onCollide({ gameObject: gameObject1 })
                     }
                   }
                 }
@@ -637,7 +637,7 @@
         }
       }
 
-      onCollide(gameObject) {
+      onCollide({ gameObject }) {
         if (gameObject.hasTag('enemyFire')) {
           this.data.game.gameOver()
         }
@@ -660,7 +660,7 @@
       fire() {
         if (!this.data.game.getByTag('playerFire').length) {
           this.data.game.addAt(this.data.gameIndex, new Bullet({
-            tag: 'playerFire',
+            tag: ['bullet', 'playerFire'],
             position: {
               x: this.data.position.x + this.data.width / 2 - context.playerFire.width / 2,
               y: this.data.position.y
@@ -737,7 +737,7 @@
             this.data.fire.nextFireTime = Date.now() + Math.getRandomInt(this.data.fire.maxDelay)
             const enemy = enemies[Math.getRandomInt(enemies.length - 1)]
             this.data.game.addAt(enemy.data.gameIndex, new Bullet({
-              tag: 'enemyFire',
+              tag: ['bullet', 'enemyFire'],
               position: {
                 x: enemy.data.position.x + enemy.data.width / 2 - context.enemyFire.width / 2,
                 y: enemy.data.position.y
@@ -773,7 +773,7 @@
         super(args)
       }
 
-      onCollide(gameObject) {
+      onCollide({ gameObject }) {
         if (gameObject.hasTag('playerFire')) {
           const enemyController = this.data.game.getByTag('enemyController')
           if (enemyController.length) {
@@ -801,6 +801,13 @@
           this.moveTowards(this.data.direction, this.data.speed * deltaTime)
         }
       }
+
+      onCollide({ gameObject }) {
+        if (this.hasTag('enemyFire') && gameObject.hasTag('playerFire')) {
+          this.data.game.remove(this)
+          this.data.game.remove(gameObject)
+        }
+      }
     }
 
 
@@ -809,6 +816,12 @@
         args.tag = args.tag ?? 'barricade'
         args.shape = args.shape ?? barricadeShape
         super(args)
+      }
+
+      onCollide({ gameObject }) {
+        if (gameObject.hasTag('bullet')) {
+          this.data.game.remove(gameObject)
+        }
       }
     }
 
@@ -891,6 +904,7 @@
         collisionTagPairs: [
           ['playerFire', 'enemy'],
           ['playerFire', 'barricade'],
+          ['playerFire', 'enemyFire'],
           ['enemyFire', 'player'],
           ['enemyFire', 'barricade'],
         ]
