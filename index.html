@@ -17,49 +17,729 @@
     </div>
   </div>
   <script>
-    let mobilmi = false;
-    (function (a) { if (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino|android|ipad|playbook|silk/i.test(a) || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0, 4))) mobilmi = true; })(navigator.userAgent || navigator.vendor || window.opera);
+    Math.degreeToRadian = (degree) => {
+      return Math.PI / 180 * degree
+    }
+    Math.directionToRadian = (direction) => {
+      return Math.degreeToRadian(360 * direction)
+    }
+    Math.getRandomInt = (max) => {
+      return Math.round(Math.random() * max);
+    }
 
-    const Direction = { NONE: -1, LEFT: 0, UP: 1, RIGHT: 2, BOTTOM: 3 }
-    const Coordinate = { X: 0, Y: 1 }
+    let isMobile = false;
+    (function (a) { if (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino|android|ipad|playbook|silk/i.test(a) || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0, 4))) isMobile = true; })(navigator.userAgent || navigator.vendor || window.opera);
 
-    const bgcolor = "#000"; // black
-    const playerColor = "#00d100"; // white
-    const enemyColor = "#fff"; // green
-    const fireColor = "#00cbe6"; // blue
+    const Direction = { RIGHT: 0, DOWN: 0.25, LEFT: 0.5, UP: 0.75 }
 
-    let dp = 1
-    let isPlaying = false
-    let gameStartTime = 0
-    let lastDrawTime = 0
-    let deltaTime = 0
-    let enemies = []
-    const keyState = {};
-    let player = {
-      position: { x: 0, y: 0 },
-      currentDirection: Direction.NONE,
-      speed: 15,
-      fire: {
-        active: false,
-        position: { x: 0, y: 0 },
-        speed: 120,
-        sizeInDp: { width: 0.5, height: 1.5 },
-        size: { width: 0, height: 0 },
+
+    const bgShape = {
+      vertecies: [
+        { x: 0, y: 0 },
+        { x: 0, y: 1 },
+        { x: 1, y: 1 },
+        { x: 1, y: 0 },
+      ],
+      width: 1,
+      height: 1,
+      color: '#000000'
+    }
+
+    const playerShape = {
+      vertecies: [
+        { x: 0, y: 5 },
+        { x: 0, y: 3 },
+        { x: 1, y: 2 },
+        { x: 3, y: 2 },
+        { x: 3, y: 1 },
+        { x: 4, y: 0 },
+        { x: 5, y: 1 },
+        { x: 5, y: 2 },
+        { x: 7, y: 2 },
+        { x: 8, y: 3 },
+        { x: 8, y: 5 },
+      ],
+      width: 8,
+      height: 5,
+      color: '#00ff00'
+    }
+    playerShape.collider = { vertecies: playerShape.vertecies, width: playerShape.width, height: playerShape.height }
+
+    const enemyShape = {
+      vertecies: [
+        { x: 0, y: 0 },
+        { x: 0, y: 1 },
+        { x: 1, y: 1 },
+        { x: 1, y: 0 },
+      ],
+      width: 1,
+      height: 1,
+      color: '#ffffff'
+    }
+    enemyShape.collider = { vertecies: enemyShape.vertecies, width: enemyShape.width, height: enemyShape.height }
+
+    const bulletShape = {
+      vertecies: [
+        { x: 0, y: 0 },
+        { x: 0, y: 3 },
+        { x: 1, y: 3 },
+        { x: 1, y: 0 },
+      ],
+      width: 1,
+      height: 3,
+      color: '#ffffff'
+    }
+    bulletShape.collider = { vertecies: bulletShape.vertecies, width: bulletShape.width, height: bulletShape.height }
+
+    const barricadeShape = {
+      vertecies: [
+        { x: 0, y: 6 },
+        { x: 0, y: 2 },
+        { x: 2, y: 0 },
+        { x: 6, y: 0 },
+        { x: 8, y: 2 },
+        { x: 8, y: 6 },
+        { x: 6, y: 6 },
+        { x: 6, y: 5 },
+        { x: 5, y: 4 },
+        { x: 3, y: 4 },
+        { x: 2, y: 5 },
+        { x: 2, y: 6 },
+      ],
+      width: 8,
+      height: 6,
+      color: '#00ff00'
+    }
+    barricadeShape.collider = { vertecies: barricadeShape.vertecies, width: barricadeShape.width, height: barricadeShape.height }
+
+
+    const context = {
+      keyState: {},
+      dp: 1,
+      canvas: {
+        width: 100,
+        height: 100
+      },
+      canvasContext: undefined,
+      player: {
+        width: 7
+      },
+      playerFire: {
+        width: 0.5,
+        height: 1.5,
+        speed: 120
+      },
+      enemyFire: {
+        width: 0.5,
+        height: 1.5,
+        speed: 40
+      },
+      enemyGroup: {
+        counts: { rows: 5, cols: 11 },
+        spaces: { vertical: 2, horizontal: 2 },
+      },
+      barricade: {
+        count: 4
       }
     }
-    let enemyGroup = {
-      size: { left: 0, right: 0, top: 0, bottom: 0 },
-      counts: { rows: 5, cols: 11 },
-      spacesInDp: { vertical: 2, horizontal: 2 },
-      speed: { horizontal: 5, vertical: 50 },
-      move: { delay: 5, lengthInDp: 1, length: 0, lastEnemyMoveTime: 0, lastMovedEnemyIndex: -1, toRight: true, toDown: false, willChangeDirection: false },
-      fire: {
-        speed: 120,
-        sizeInDp: { width: 0.5, height: 1.5 },
-        size: { width: 0, height: 0 },
-      },
-      fires: []
+
+
+    class Game {
+      data = {
+        list: [],
+        isPlaying: false,
+        gameStartTime: 0,
+        lastDrawTime: 0,
+        deltaTime: 0,
+      }
+
+      constructor({ list } = {}) {
+        if (list) {
+          this.data.list = list
+        }
+      }
+
+      play() {
+        this.data.isPlaying = true
+        this.data.gameStartTime = Date.now()
+      }
+
+      gameOver() {
+        this.data.isPlaying = false
+      }
+
+      draw() {
+        const { canvasContext, dp } = context
+        const { deltaTime, lastDrawTime, isPlaying, list } = this.data
+        if (canvasContext && isPlaying) {
+          this.data.deltaTime = (Date.now() - lastDrawTime) / 1000
+          this.data.lastDrawTime = Date.now()
+          this.checkCollisions()
+          list.forEach(gameObject => {
+            if (gameObject.onFrame) {
+              gameObject.onFrame({ deltaTime })
+            }
+            if (gameObject.draw) {
+              gameObject.draw()
+            }
+          });
+        }
+      }
+
+      add(...gameObjects) {
+        gameObjects.forEach(gameObject => {
+          gameObject.data.game = this
+          gameObject.data.gameIndex = this.data.list.length
+          this.data.list.push(gameObject)
+        });
+      }
+
+      addAt(index, ...gameObjects) {
+        gameObjects.forEach((gameObject, i) => {
+          gameObject.data.game = this
+          gameObject.data.gameIndex = index + i
+        });
+        this.data.list = [
+          ...this.data.list.slice(0, index),
+          ...gameObjects,
+          ...this.data.list.slice(index)
+        ];
+      }
+
+      remove(gameObject) {
+        const index = this.data.list.findIndex(item => item == gameObject)
+        if (index > -1) {
+          this.data.list.splice(index, 1)
+        }
+      }
+
+      removeAt(index, deleteCount = 1) {
+        return this.data.list.splice(index, deleteCount)
+      }
+
+      get(index) {
+        return this.data.list[index]
+      }
+
+      getAll() {
+        return this.data.list
+      }
+
+      getByTag(tag) {
+        if (tag) {
+          return this.data.list.filter(item => item.data.tag === tag)
+        } else {
+          return []
+        }
+      }
+
+      indexOf(gameObject) {
+        return this.data.list.indexOf(gameObject)
+      }
+
+      clear() {
+        this.data.list = []
+      }
+
+      checkCollisions() {
+        const gameObjects = this.data.list.filter(gameObject => gameObject.data.collider)
+        if (gameObjects.length > 1) {
+          for (let i = 0; i < gameObjects.length; i++) {
+            const gameObject1 = gameObjects[i];
+            for (let j = i + 1; j < gameObjects.length; j++) {
+              const gameObject2 = gameObjects[j];
+              if (this.polyPolyCollision(gameObject1.data.collider.vertecies, gameObject2.data.collider.vertecies)) {
+                if (gameObject1.onCollide) {
+                  gameObject1.onCollide(gameObject2)
+                }
+                if (gameObject2.onCollide) {
+                  gameObject2.onCollide(gameObject1)
+                }
+              }
+            }
+          }
+        }
+      }
+
+      polyPolyCollision(p1, p2) {
+        let next = 0;
+        for (let current = 0; current < p1.length; current++) {
+          next = current + 1;
+          if (next == p1.length) next = 0;
+          const vc = p1[current];
+          const vn = p1[next];
+          if (this.polyLineCollision(p2, vc.x, vc.y, vn.x, vn.y)) {
+            return true
+          }
+          if (this.polyPointCollision(p1, p2[0].x, p2[0].y)) {
+            return true
+          }
+        }
+        return false;
+      }
+
+      polyLineCollision(vertices, x1, y1, x2, y2) {
+        let next = 0;
+        for (let current = 0; current < vertices.length; current++) {
+          next = current + 1;
+          if (next == vertices.length) next = 0;
+          let x3 = vertices[current].x;
+          let y3 = vertices[current].y;
+          let x4 = vertices[next].x;
+          let y4 = vertices[next].y;
+          if (this.lineLineCollision(x1, y1, x2, y2, x3, y3, x4, y4)) {
+            return true;
+          }
+        }
+        return false;
+      }
+
+      lineLineCollision(x1, y1, x2, y2, x3, y3, x4, y4) {
+        let uA = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1));
+        let uB = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1));
+        if (uA >= 0 && uA <= 1 && uB >= 0 && uB <= 1) {
+          return true;
+        }
+        return false;
+      }
+
+      polyPointCollision(vertices, px, py) {
+        let collision = false;
+        let next = 0;
+        for (let current = 0; current < vertices.length; current++) {
+          next = current + 1;
+          if (next == vertices.length) next = 0;
+          let vc = vertices[current];
+          let vn = vertices[next];
+          if (((vc.y > py && vn.y < py) || (vc.y < py && vn.y > py)) &&
+            (px < (vn.x - vc.x) * (py - vc.y) / (vn.y - vc.y) + vc.x)) {
+            collision = !collision;
+          }
+        }
+        return collision;
+      }
     }
+
+
+    class GameObject {
+      data = {
+        tag: undefined,
+        shape: {},
+        collider: undefined,
+        vertecies: [],
+        position: { x: 0, y: 0 },
+        width: 0,
+        height: 0,
+        scale: { x: 1, y: 1 },
+        rotation: 0,
+        color: '#000000',
+        strokeWidth: 0,
+        strokeColor: '#000000',
+        game: undefined,
+        gameIndex: -1
+      }
+
+      constructor({ tag, shape, collider, position, scale, width, height, rotation, color, strokeWidth, strokeColor }) {
+        if (tag) {
+          this.data.tag = tag
+        }
+        if (shape) {
+          this.data.shape = shape
+          if (shape.color) {
+            this.data.color = shape.color
+          }
+          if (shape.strokeWidth != undefined) {
+            this.data.strokeWidth = shape.strokeWidth
+          }
+          if (shape.strokeColor) {
+            this.data.strokeColor = shape.strokeColor
+          }
+        }
+        if (collider) {
+          this.data.shape.collider = collider
+        }
+        if (position) {
+          this.data.position.x = typeof position.x == 'number' ? position.x : this.data.position.x
+          this.data.position.y = typeof position.y == 'number' ? position.y : this.data.position.y
+        }
+        if (color != undefined) {
+          this.data.color = color
+        }
+        if (strokeWidth != undefined) {
+          this.data.strokeWidth = strokeWidth
+        }
+        if (strokeColor != undefined) {
+          this.data.rotation = strokeColor
+        }
+        if (rotation != undefined) {
+          this.data.rotation = rotation
+        }
+        if (typeof scale == 'object' && !Array.isArray(scale)) {
+          this.data.scale = {
+            x: scale.x === undefined ? scale.y ?? this.data.scale.x : scale.x,
+            y: scale.y === undefined ? scale.x ?? this.data.scale.y : scale.y,
+          }
+        } else if (width != undefined || height != undefined) {
+          this._setSize(width, height)
+        }
+        this.updateData()
+      }
+
+      updateData() {
+        if (this.data.shape.vertecies) {
+          this.data.vertecies = JSON.parse(JSON.stringify(this.data.shape.vertecies))
+          this.data.width = this.data.shape.width * this.data.scale.x
+          this.data.height = this.data.shape.height * this.data.scale.y
+          this.data.vertecies.forEach(vertex => {
+            // Scale
+            vertex.x *= this.data.scale.x
+            vertex.y *= this.data.scale.y
+
+            // Move
+            vertex.x += this.data.position.x
+            vertex.y += this.data.position.y
+
+            // TODO: Rotate
+          })
+        }
+        if (this.data.shape.collider) {
+          this.data.collider = JSON.parse(JSON.stringify(this.data.shape.collider))
+          if (this.data.scale.x !== 1 || this.data.scale.y !== 1)
+            this.data.collider.vertecies.forEach(vertex => {
+              // Scale
+              vertex.x *= this.data.scale.x
+              vertex.y *= this.data.scale.y
+
+              // Move
+              vertex.x += this.data.position.x
+              vertex.y += this.data.position.y
+
+              // TODO: Rotate
+            })
+        }
+      }
+
+      draw() {
+        const { canvasContext, dp } = context
+        if (canvasContext) {
+          this.data.vertecies.forEach((vertex, i) => {
+            if (i === 0) {
+              canvasContext.beginPath();
+              canvasContext.moveTo(vertex.x * dp, vertex.y * dp);
+            }
+            else {
+              canvasContext.lineTo(vertex.x * dp, vertex.y * dp);
+            }
+            if (i === this.data.vertecies.length - 1) {
+              canvasContext.closePath()
+            }
+          });
+          if (this.data.strokeWidth > 0) {
+            canvasContext.strokeStyle = this.data.strokeColor;
+            canvasContext.lineWidth = this.data.strokeWidth;
+            canvasContext.stroke();
+          }
+          if (this.data.color) {
+            canvasContext.fillStyle = this.data.color;
+            canvasContext.fill()
+          }
+        }
+      }
+
+      _scaleTo(x, y) {
+        if (x != undefined) {
+          this.data.scale.x = x
+          this.data.scale.y = y === undefined ? x : y
+          return this.data.scale
+        }
+        return false
+      }
+
+      scaleTo(x, y) {
+        if (this._scaleTo(x, y)) {
+          this.updateData()
+        }
+      }
+
+      _scale(x, y) {
+        if (x != undefined) {
+          this.data.scale.x *= x
+          this.data.scale.y = y === undefined ? this.data.scale.y * x : this.data.scale.y * y
+          return this.data.scale
+        }
+        return false
+      }
+
+      scale(x, y) {
+        if (this._scale(x, y)) {
+          this.updateData()
+        }
+      }
+
+      _setSize(width, height) {
+        if (width != undefined || height != undefined) {
+          const scaleX = width != undefined ? width / this.data.shape?.width : height / this.data.shape?.height
+          const scaleY = height != undefined ? height / this.data.shape?.height : width / this.data.shape?.width
+          return this._scaleTo(scaleX, scaleY)
+        }
+        return false
+      }
+
+      setSize(width, height) {
+        if (this._setSize(width, height)) {
+          this.updateData()
+        }
+      }
+
+      _move(x, y) {
+        if (x || y) {
+          this.data.position.x += (x || 0)
+          this.data.position.y += (y || 0)
+          return this.data.position
+        }
+        return false
+      }
+
+      move(x, y) {
+        if (this._move(x, y)) {
+          this.updateData()
+        }
+      }
+
+      _moveTo(x, y) {
+        if (x != undefined || y != undefined) {
+          if (x != undefined) {
+            this.data.position.x = x
+          }
+          if (y != undefined) {
+            this.data.position.y = y
+          }
+          return this.data.position
+        }
+        return false
+      }
+
+      moveTo(x, y) {
+        if (this._moveTo(x, y)) {
+          this.updateData()
+        }
+      }
+
+      _moveTowards(direction, distance) {
+        if (direction != undefined && distance) {
+          const rad = Math.directionToRadian(this.data.direction)
+          this.data.position.x += Math.cos(rad) * distance
+          this.data.position.y += Math.sin(rad) * distance
+          return this.data.position
+        }
+        return false
+      }
+
+      moveTowards(direction, distance) {
+        if (this._moveTowards(direction, distance)) {
+          this.updateData()
+        }
+      }
+    }
+
+
+    class Player extends GameObject {
+      constructor(args = {}) {
+        args.tag = 'player'
+        args.shape = playerShape
+        super(args)
+        this.data.maxSpeed = args.maxSpeed ?? 50
+        this.data.speed = args.speed ?? 0
+        this.data.direction = args.direction ?? Direction.RIGHT
+      }
+
+      onFrame({ deltaTime }) {
+        this.moveTowards(this.data.direction, this.data.speed * deltaTime)
+        if (this.data.position.x + this.data.width / 2 > context.canvas.width) {
+          this.moveTo(context.canvas.width - this.data.width / 2)
+        }
+        else if (this.data.position.x + this.data.width / 2 < 0) {
+          this.moveTo(-this.data.width / 2)
+        }
+      }
+
+      goLeft() {
+        this.data.direction = Direction.LEFT
+        this.data.speed = this.data.maxSpeed
+      }
+
+      goRight() {
+        this.data.direction = Direction.RIGHT
+        this.data.speed = this.data.maxSpeed
+      }
+
+      stop() {
+        this.data.speed = 0
+      }
+
+      fire() {
+        if (!this.data.game.getByTag('playerFire').length) {
+          this.data.game.addAt(this.data.gameIndex, new Bullet({
+            tag: 'playerFire',
+            position: {
+              x: this.data.position.x + this.data.width / 2 - context.playerFire.width / 2,
+              y: this.data.position.y
+            },
+            width: context.playerFire.width,
+            height: context.playerFire.height,
+            speed: context.playerFire.speed,
+          }))
+        }
+      }
+    }
+
+
+    class EnemiesController extends GameObject {
+      constructor() {
+        super({})
+        this.data.tag = 'enemiesController'
+        this.data.move = {
+          delay: 5,
+          distance: 1,
+          lastEnemyMoveTime: 0,
+          lastMovedEnemyIndex: -1,
+          toRight: true,
+          toDown: false,
+          willChangeDirection: false
+        }
+        this.data.fire = {
+          maxDelay: 5000,
+          nextFireTime: 0
+        }
+        this.data.fire.nextFireTime = Date.now() + Math.getRandomInt(this.data.fire.maxDelay)
+      }
+
+      onFrame({ deltaTime }) {
+        const enemies = game.getByTag('enemy')
+        if (enemies.length) {
+          const nextEnemyIndexToMove = (this.data.move.lastMovedEnemyIndex + 1) % enemies.length
+          const passedTime = Date.now() - this.data.move.lastEnemyMoveTime
+          if (passedTime >= this.data.move.delay) {
+            if (this.data.move.toDown) {
+              // Move to down
+              enemies[nextEnemyIndexToMove].move(0, this.data.move.distance)
+            } else if (this.data.move.toRight) {
+              // Move to right
+              const enemy = enemies[nextEnemyIndexToMove]
+              enemy.move(this.data.move.distance)
+              if (enemy.data.position.x + characterSize + this.data.move.distance > enemyMovementArea.right) {
+                this.data.move.willChangeDirection = true
+              }
+            } else {
+              // Move to left
+              const enemy = enemies[nextEnemyIndexToMove]
+              enemy.move(-this.data.move.distance)
+              if (enemy.data.position.x - this.data.move.distance < enemyMovementArea.left) {
+                this.data.move.willChangeDirection = true
+              }
+            }
+
+            if (nextEnemyIndexToMove == enemies.length - 1) {
+              if (this.data.move.toDown) {
+                this.data.move.toDown = false
+              } else if (this.data.move.willChangeDirection) {
+                this.data.move.willChangeDirection = false
+                this.data.move.toRight = !this.data.move.toRight
+                this.data.move.toDown = true
+              }
+            }
+
+            this.data.move.lastMovedEnemyIndex = nextEnemyIndexToMove
+          }
+          this.data.move.lastEnemyMoveTime = Date.now()
+
+          if (Date.now() >= this.data.fire.nextFireTime) {
+            this.data.fire.nextFireTime = Date.now() + Math.getRandomInt(this.data.fire.maxDelay)
+            const enemy = enemies[Math.getRandomInt(enemies.length - 1)]
+            this.data.game.addAt(enemy.data.gameIndex, new Bullet({
+              tag: 'enemyFire',
+              position: {
+                x: enemy.data.position.x + enemy.data.width / 2 - context.enemyFire.width / 2,
+                y: enemy.data.position.y
+              },
+              width: context.enemyFire.width,
+              height: context.enemyFire.height,
+              direction: Direction.DOWN,
+              speed: context.enemyFire.speed
+            }))
+          }
+        }
+      }
+
+      removeEnemy(enemy) {
+        const enemies = this.data.game.getByTag('enemy')
+        if (enemies.length) {
+          const index = enemies.findIndex(e => e == enemy)
+          if (index > -1) {
+            this.data.game.remove(enemy)
+            if (index <= this.data.move.lastMovedEnemyIndex) {
+              this.data.move.lastMovedEnemyIndex--
+            }
+          }
+        }
+      }
+    }
+
+
+    class Enemy extends GameObject {
+      constructor(args = {}) {
+        args.tag = args.tag ?? 'enemy'
+        args.shape = args.shape ?? enemyShape
+        super(args)
+      }
+
+      onCollide(gameObject) {
+        if (gameObject.data.tag == 'playerFire') {
+          const enemiesController = this.data.game.getByTag('enemiesController')
+          if (enemiesController.length) {
+            enemiesController[0].removeEnemy(this)
+          }
+          this.data.game.remove(gameObject)
+        }
+      }
+    }
+
+
+    class Bullet extends GameObject {
+      constructor(args = {}) {
+        args.tag = args.tag ?? 'bullet'
+        args.shape = args.shape ?? bulletShape
+        super(args)
+        this.data.speed = args.speed ?? 120
+        this.data.direction = args.direction ?? Direction.UP
+      }
+
+      onFrame({ deltaTime }) {
+        if (this.data.position.y - this.data.height < 0 || this.data.position.y > context.canvasContext.canvas.height) {
+          this.data.game.remove(this)
+        } else {
+          this.moveTowards(this.data.direction, this.data.speed * deltaTime)
+        }
+      }
+    }
+
+
+    class Barricade extends GameObject {
+      constructor(args = {}) {
+        args.tag = args.tag ?? 'barricade'
+        args.shape = args.shape ?? barricadeShape
+        console.log("Barricade args:", args)
+        super(args)
+      }
+    }
+
+
+
+
+    let game = undefined
+    let player = undefined
+
+    let enemies = []
     let enemyMovementArea = { left: 0, right: 0, top: 0, bottom: 0 }
     const levels = [
       {
@@ -71,322 +751,119 @@
     let nextEnemyFireTime = 0
 
     let characterSize;
-    let ctx;
-    let canvasSize;
+    let canvasSizePx;
 
     window.onload = () => {
       const canvasContainer = document.getElementById('canvasContainer')
       const canvas = document.getElementById("canvas");
 
-      canvasSize = Math.min(canvasContainer.offsetWidth, canvasContainer.offsetHeight)
-      dp = canvasSize / 100
-      canvas.width = canvasSize;
-      canvas.height = canvasSize;
-      ctx = canvas.getContext("2d");
-
-      enemyMovementArea = { left: 3 * dp, right: canvasSize - 3 * dp, top: 3 * dp, bottom: canvasSize - 3 * dp }
-      enemyGroup.move.length = enemyGroup.move.lengthInDp * dp
-      enemyGroup.fire.size = { width: enemyGroup.fire.sizeInDp.width * dp, height: enemyGroup.fire.sizeInDp.height * dp }
-      characterSize = ((enemyMovementArea.right - enemyMovementArea.left) - (enemyGroup.counts.cols - 1) * (enemyGroup.spacesInDp.horizontal * dp)) / (enemyGroup.counts.cols + 2)
-      player.fire.size = { width: player.fire.sizeInDp.width * dp, height: player.fire.sizeInDp.height * dp }
-
+      canvasSizePx = Math.min(canvasContainer.offsetWidth, canvasContainer.offsetHeight)
+      context.dp = canvasSizePx / 100
+      canvas.width = canvasSizePx;
+      canvas.height = canvasSizePx;
+      context.canvasContext = canvas.getContext("2d");
+      enemyMovementArea = { left: 3, right: context.canvas.width - 3, top: 3, bottom: context.canvas.height - 3 }
+      characterSize = ((enemyMovementArea.right - enemyMovementArea.left) - (context.enemyGroup.counts.cols - 1) * context.enemyGroup.spaces.horizontal) / (context.enemyGroup.counts.cols + 2)
 
       window.addEventListener('keydown', function (e) {
         // console.log("keydown e.keyCode:", e.keyCode)
-        keyState[e.keyCode || e.which] = true;
+        context.keyState[e.keyCode || e.which] = true;
         switch (e.keyCode) {
           // Space
           case 32:
-            fire()
+            player?.fire()
             break
           // Left
           case 37:
-            player.currentDirection = Direction.LEFT
+            player?.goLeft()
             break
           // Right
           case 39:
-            player.currentDirection = Direction.RIGHT
+            player?.goRight()
             break
         }
       }, true);
       window.addEventListener('keyup', function (e) {
-        keyState[e.keyCode || e.which] = false;
+        context.keyState[e.keyCode || e.which] = false;
         switch (e.keyCode) {
           // Left
           case 37:
-            if (player.currentDirection == Direction.LEFT) {
-              player.currentDirection = Direction.NONE
+            if (player.data.direction == Direction.LEFT) {
+              player?.stop()
             }
             break
           // Right
           case 39:
-            if (player.currentDirection == Direction.RIGHT) {
-              player.currentDirection = Direction.NONE
+            if (player.data.direction == Direction.RIGHT) {
+              player?.stop()
             }
             break
         }
       }, true);
 
       setInitialData()
+      game?.play()
       draw()
     }
 
     function setInitialData() {
-      player.currentDirection = Direction.NONE
-      player.position = { x: canvasSize / 2 - characterSize, y: canvasSize - 2 * characterSize }
-      enemyGroup.move = { ...enemyGroup.move, lastMovedEnemyIndex: -1, toRight: true, toDown: false, willChangeDirection: false, }
-      enemyGroup.fires = []
-      player.fire.active = false
-      generateEnemyData()
-      isPlaying = true
+      const { canvas } = context
+      game = new Game()
+      game.add(new GameObject({ shape: bgShape, width: canvas.width, height: canvas.height }))
+      generateBarricades()
+      game.add(new EnemiesController())
+      generateEnemies()
+      const playerHeight = playerShape.height * (context.player.width / playerShape.width)
+      player = new Player({
+        width: context.player.width,
+        height: playerHeight,
+        position: { x: canvas.width / 2 - context.player.width / 2, y: canvas.height - playerHeight - 3 }
+      })
+      game.add(player)
       const now = Date.now()
-      enemyGroup.move.lastEnemyMoveTime = now
-      gameStartTime = now
-      lastDrawTime = now
-      nextEnemyFireTime = now + getRandomInt(currentLevel.enemyFireMaxDelay)
+    }
+
+    function generateBarricades() {
+      for (let i = 0; i < context.barricade.count; i++) {
+        const width = context.canvas.width / (context.barricade.count * 2)
+        const height = barricadeShape.height * (width / barricadeShape.width)
+        const barricade = new Barricade({
+          width,
+          height,
+          position: {
+            x: width / 2 + width * i * 2,
+            y: context.canvas.width - height - 12
+          },
+          strokeWidth: 10,
+          strokeColor: '#00ff00'
+        })
+        game.add(barricade)
+      }
+    }
+
+    function generateEnemies() {
+      for (let i = context.enemyGroup.counts.rows - 1; i > -1; i--) {
+        for (let j = 0; j < context.enemyGroup.counts.cols; j++) {
+          game.add(new Enemy({
+            width: characterSize,
+            height: characterSize,
+            position: {
+              x: j * (characterSize + context.enemyGroup.spaces.horizontal) + enemyMovementArea.left,
+              y: i * (characterSize + context.enemyGroup.spaces.vertical) + enemyMovementArea.top
+            }
+          }))
+        }
+      }
     }
 
     function draw() {
-      if (isPlaying) {
-        deltaTime = (Date.now() - lastDrawTime) / 1000
-        // console.log("deltaTime:", deltaTime)
-        // console.log("passed time since last draw:", Date.now() - lastDrawTime)
-        lastDrawTime = Date.now()
-        ctx.fillStyle = bgcolor;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        moveEnemyGroup()
-        drawEnemies()
-        moveFire()
-        drawFire()
-        enemyFire()
-        moveEnemyFire()
-        drawEnemyFires()
-        movePlayer()
-        drawPlayer()
+      if (game?.data.isPlaying) {
+        game.draw()
         requestAnimationFrame(draw);
       }
     }
 
-    function generateEnemyData() {
-      const _enemies = []
-      for (let i = enemyGroup.counts.rows - 1; i > -1; i--) {
-        for (let j = 0; j < enemyGroup.counts.cols; j++) {
-          _enemies.push({
-            coordinates: { x: j, y: i },
-            position: { x: j * (characterSize + enemyGroup.spacesInDp.horizontal * dp) + enemyMovementArea.left, y: i * (characterSize + enemyGroup.spacesInDp.vertical * dp) + enemyMovementArea.top }
-          })
-        }
-      }
-      enemies = _enemies
-    }
-
-
-    function enemyFire() {
-      const now = Date.now()
-      if (now >= nextEnemyFireTime) {
-        const enemy = enemies[getRandomInt(enemies.length - 1)]
-        const fire = { size: enemyGroup.fire.size }
-        fire.position = { x: enemy.position.x + characterSize / 2 - fire.size.width / 2, y: enemy.position.y }
-        enemyGroup.fires.push(fire)
-        nextEnemyFireTime = now + getRandomInt(currentLevel.enemyFireMaxDelay)
-      }
-    }
-
-    function moveEnemyFire() {
-      for (let i = 0; i < enemyGroup.fires.length; i++) {
-        const fire = enemyGroup.fires[i];
-        fire.position.y += deltaTime * enemyGroup.fire.speed
-        const firePosition = { x1: fire.position.x, x2: fire.position.x + fire.size.width, y1: fire.position.y, y2: fire.position.y + fire.size.height }
-
-        // Remove fire if goes outside of the canvas
-        if (fire.position.y > canvasSize) {
-          enemyGroup.fires.splice(i, 1)
-          i--
-        }
-        // If fire hits player's fire, remove both fires
-        else if (player.fire.active && isObjectsTouch(
-          firePosition,
-          { x1: player.fire.position.x, x2: player.fire.position.x + player.fire.size.width, y1: player.fire.position.y, y2: player.fire.position.y + player.fire.size.height }
-        )) {
-          player.fire.active = false
-          enemyGroup.fires.splice(i, 1)
-          i--
-        }
-        // If fire hits player, game is over
-        else if (isObjectsTouch(
-          firePosition,
-          { x1: player.position.x, x2: player.position.x + characterSize, y1: player.position.y, y2: player.position.y + characterSize }
-        )) {
-          gameOver()
-        }
-      }
-    }
-
-    function drawEnemyFires() {
-      for (let i = 0; i < enemyGroup.fires.length; i++) {
-        const fire = enemyGroup.fires[i];
-        ctx.fillStyle = fireColor
-        ctx.fillRect(fire.position.x, fire.position.y, fire.size.width, fire.size.height);
-      }
-    }
-
-    function drawFire() {
-      const { active, position, size, width, height } = player.fire
-      if (active) {
-        ctx.fillStyle = fireColor
-        ctx.fillRect(position.x, position.y, size.width, size.height);
-      }
-    }
-
-    function drawPlayer() {
-      ctx.fillStyle = playerColor
-      ctx.fillRect(player.position.x, player.position.y, characterSize, characterSize);
-    }
-
-    function drawEnemies() {
-      enemies.forEach(enemy => {
-        ctx.fillStyle = enemyColor
-        ctx.fillRect(enemy.position.x, enemy.position.y, characterSize, characterSize);
-      });
-    }
-
-    function moveEnemyGroup() {
-      const nextEnemyIndexToMove = (enemyGroup.move.lastMovedEnemyIndex + 1) % enemies.length
-      const passedTime = Date.now() - enemyGroup.move.lastEnemyMoveTime
-      // console.log("passedTime:", passedTime)
-      if (passedTime >= enemyGroup.move.delay) {
-        if (enemyGroup.move.toDown) {
-          // Move to down
-          enemies[nextEnemyIndexToMove].position.y += enemyGroup.move.length
-        } else if (enemyGroup.move.toRight) {
-          // Move to right
-          const enemy = enemies[nextEnemyIndexToMove]
-          enemy.position.x += enemyGroup.move.length
-          if (enemy.position.x + characterSize + enemyGroup.move.length > enemyMovementArea.right) {
-            enemyGroup.move.willChangeDirection = true
-          }
-        } else {
-          // Move to left
-          const enemy = enemies[nextEnemyIndexToMove]
-          enemy.position.x -= enemyGroup.move.length
-          if (enemy.position.x - enemyGroup.move.length < enemyMovementArea.left) {
-            enemyGroup.move.willChangeDirection = true
-          }
-        }
-
-        if (nextEnemyIndexToMove == enemies.length - 1) {
-          if (enemyGroup.move.toDown) {
-            enemyGroup.move.toDown = false
-          } else if (enemyGroup.move.willChangeDirection) {
-            enemyGroup.move.willChangeDirection = false
-            enemyGroup.move.toRight = !enemyGroup.move.toRight
-            enemyGroup.move.toDown = true
-          }
-        }
-
-        enemyGroup.move.lastMovedEnemyIndex = nextEnemyIndexToMove
-
-        for (let i = 0; i < enemies.length; i++) {
-          const enemy = enemies[i]
-          const enemyObj = {}
-          enemyObj.x1 = enemy.position.x
-          enemyObj.x2 = enemyObj.x1 + characterSize
-          enemyObj.y1 = enemy.position.y
-          enemyObj.y2 = enemyObj.y1 + characterSize
-
-          // Fire hit to enemy
-          if (player.fire.active) {
-            const fireObj = {}
-            fireObj.x1 = player.fire.position.x
-            fireObj.x2 = fireObj.x1 + player.fire.size.width
-            fireObj.y1 = player.fire.position.y
-            fireObj.y2 = fireObj.y1 + player.fire.size.height
-
-            if (isObjectsTouch(enemyObj, fireObj)) {
-              enemies.splice(i, 1)
-              if (enemyGroup.move.lastMovedEnemyIndex >= i) {
-                enemyGroup.move.lastMovedEnemyIndex--
-              }
-              player.fire.active = false
-              if (enemies.length === 0) {
-                // All enemies are eliminated
-                gameOver()
-                return
-              }
-            }
-          }
-
-          const playerObj = {}
-          playerObj.x1 = player.position.x
-          playerObj.x2 = playerObj.x1 + characterSize
-          playerObj.y1 = player.position.y
-          playerObj.y2 = playerObj.y1 + characterSize
-          // Player touch enemy
-          if (isObjectsTouch(enemyObj, playerObj)) {
-            gameOver()
-            return
-          }
-
-          // Enemies reach to the bottom
-          if (enemyObj.y2 >= canvasSize) {
-            gameOver()
-            return
-          }
-        };
-      }
-      enemyGroup.move.lastEnemyMoveTime = Date.now()
-    }
-
-    function isObjectsTouch(obj1, obj2) {
-      return ((obj1.x1 <= obj2.x1 && obj1.x2 >= obj2.x1) || (obj1.x1 <= obj2.x2 && obj1.x2 >= obj2.x2) || (obj2.x1 <= obj1.x1 && obj2.x2 >= obj1.x1) || (obj2.x1 <= obj1.x2 && obj2.x2 >= obj1.x2)) && ((obj1.y1 <= obj2.y1 && obj1.y2 >= obj2.y1) || (obj1.y1 <= obj2.y2 && obj1.y2 >= obj2.y2) || (obj2.y1 <= obj1.y1 && obj2.y2 >= obj1.y1) || (obj2.y1 <= obj1.y2 && obj2.y2 >= obj1.y2))
-    }
-
-    function movePlayer() {
-      if (player.currentDirection === Direction.LEFT) {
-        const limit = 0 - characterSize / 2
-        let x = player.position.x - dp * player.speed * deltaTime
-        x = x < limit ? limit : x
-        player.position.x = x
-      } else if (player.currentDirection === Direction.RIGHT) {
-        const limit = canvasSize - characterSize / 2
-        let x = player.position.x + dp * player.speed * deltaTime
-        x = x > limit ? limit : x
-        player.position.x = x
-      }
-    }
-
-    function fire() {
-      if (!player.fire.active) {
-        player.fire.position = { x: player.position.x + characterSize / 2 - player.fire.size.width / 2, y: player.position.y }
-        player.fire.active = true
-      }
-    }
-
-    function moveFire() {
-      const { active, position, speed } = player.fire
-      if (active) {
-        player.fire.position.y -= dp * speed * deltaTime
-        if (player.fire.position.y + player.fire.size.height < 0) {
-          player.fire.active = false
-        }
-      }
-    }
-
-    function isFireHitEnemy() {
-      for (let i = 0; i < enemies.length; i++) {
-        const enemy = enemies[i]
-        const fireXMiddlepoint = player.fire.position.x + player.fire.size.width / 2
-        const fireYMiddlepoint = player.fire.position.y
-        if (fireXMiddlepoint >= enemy.position.x && fireXMiddlepoint <= enemy.position.x + characterSize && fireYMiddlepoint >= enemy.position.y && fireYMiddlepoint <= enemy.position.y + characterSize) {
-          return { enemy, index: i }
-        }
-      };
-      return false
-    }
-
     function gameOver() {
-      isPlaying = false
       document.getElementById('gameOverPanel').style.display = 'flex'
     }
 
@@ -394,10 +871,6 @@
       setInitialData()
       document.getElementById('gameOverPanel').style.display = 'none'
       draw()
-    }
-
-    function getRandomInt(max) {
-      return Math.round(Math.random() * max);
     }
   </script>
 </body>
