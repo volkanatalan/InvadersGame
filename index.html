@@ -151,11 +151,15 @@
         gameStartTime: 0,
         lastDrawTime: 0,
         deltaTime: 0,
+        collisionTagPairs: undefined
       }
 
-      constructor({ list } = {}) {
+      constructor({ list, collisionTagPairs } = {}) {
         if (list) {
           this.data.list = list
+        }
+        if (collisionTagPairs) {
+          this.data.collisionTagPairs = collisionTagPairs
         }
       }
 
@@ -236,17 +240,6 @@
         }
       }
 
-      removeTag(tag) {
-        const index = item.data.tag.findIndex(t => t == tag)
-        if (index > -1) {
-          item.data.tag.splice(index, 1)
-        }
-      }
-
-      clearTag() {
-        item.data.tag = []
-      }
-
       indexOf(gameObject) {
         return this.data.list.indexOf(gameObject)
       }
@@ -255,19 +248,40 @@
         this.data.list = []
       }
 
+      getCollisionTagPairs() {
+        return this.data.collisionTagPairs
+      }
+
+      setCollisionTagPairs(collisionTagPairs) {
+        this.data.collisionTagPairs = collisionTagPairs
+      }
+
+      addCollisionTagPairs(...collisionTagPairs) {
+        this.data.collisionTagPairs = this.data.collisionTagPairs ?? []
+        this.data.collisionTagPairs.push(...collisionTagPairs)
+      }
+
       checkCollisions() {
-        const gameObjects = this.data.list.filter(gameObject => gameObject.data.collider)
-        if (gameObjects.length > 1) {
-          for (let i = 0; i < gameObjects.length; i++) {
-            const gameObject1 = gameObjects[i];
-            for (let j = i + 1; j < gameObjects.length; j++) {
-              const gameObject2 = gameObjects[j];
-              if (this.polyPolyCollision(gameObject1.data.collider.vertecies, gameObject2.data.collider.vertecies)) {
-                if (gameObject1.onCollide) {
-                  gameObject1.onCollide(gameObject2)
-                }
-                if (gameObject2.onCollide) {
-                  gameObject2.onCollide(gameObject1)
+        if (this.data.collisionTagPairs == undefined || this.data.collisionTagPairs.length > 0) {
+          const gameObjects = this.data.list.filter(gameObject => gameObject.data.collider)
+          if (gameObjects.length > 1) {
+            for (let i = 0; i < gameObjects.length; i++) {
+              const gameObject1 = gameObjects[i];
+              for (let j = i + 1; j < gameObjects.length; j++) {
+                const gameObject2 = gameObjects[j];
+                const shouldCheck = this.data.collisionTagPairs == undefined || this.data.collisionTagPairs.some(pair =>
+                  (gameObject1.hasTag(pair[0]) && gameObject2.hasTag(pair[1])) ||
+                  (gameObject1.hasTag(pair[1]) && gameObject2.hasTag(pair[0]))
+                )
+                if (shouldCheck) {
+                  if (this.polyPolyCollision(gameObject1.data.collider.vertecies, gameObject2.data.collider.vertecies)) {
+                    if (gameObject1.onCollide) {
+                      gameObject1.onCollide(gameObject2)
+                    }
+                    if (gameObject2.onCollide) {
+                      gameObject2.onCollide(gameObject1)
+                    }
+                  }
                 }
               }
             }
@@ -460,6 +474,21 @@
             canvasContext.fill()
           }
         }
+      }
+
+      hasTag(tag) {
+        return this.data.tag.includes(tag)
+      }
+
+      removeTag(tag) {
+        const index = item.data.tag.findIndex(t => t == tag)
+        if (index > -1) {
+          item.data.tag.splice(index, 1)
+        }
+      }
+
+      clearTag() {
+        item.data.tag = []
       }
 
       _scaleTo(x, y) {
@@ -744,7 +773,6 @@
       constructor(args = {}) {
         args.tag = args.tag ?? 'barricade'
         args.shape = args.shape ?? barricadeShape
-        console.log("Barricade args:", args)
         super(args)
       }
     }
@@ -824,7 +852,14 @@
 
     function setInitialData() {
       const { canvas } = context
-      game = new Game()
+      game = new Game({
+        collisionTagPairs: [
+          ['playerFire', 'enemy'],
+          ['playerFire', 'barricade'],
+          ['enemyFire', 'player'],
+          ['enemyFire', 'barricade'],
+        ]
+      })
       game.add(new GameObject({ shape: bgShape, width: canvas.width, height: canvas.height }))
       generateBarricades()
       game.add(new EnemyController())
