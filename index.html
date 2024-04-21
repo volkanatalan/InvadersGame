@@ -226,11 +226,25 @@
       }
 
       getByTag(tag) {
-        if (tag) {
-          return this.data.list.filter(item => item.data.tag === tag)
+        if (Array.isArray(tag)) {
+          return this.data.list.filter(item => tag.every(t => item.data.tag.includes(t)))
+        }
+        else if (typeof tag == 'string') {
+          return this.data.list.filter(item => item.data.tag.includes(tag))
         } else {
           return []
         }
+      }
+
+      removeTag(tag) {
+        const index = item.data.tag.findIndex(t => t == tag)
+        if (index > -1) {
+          item.data.tag.splice(index, 1)
+        }
+      }
+
+      clearTag() {
+        item.data.tag = []
       }
 
       indexOf(gameObject) {
@@ -323,7 +337,7 @@
 
     class GameObject {
       data = {
-        tag: undefined,
+        tag: [],
         shape: {},
         collider: undefined,
         vertecies: [],
@@ -340,8 +354,10 @@
       }
 
       constructor({ tag, shape, collider, position, scale, width, height, rotation, color, strokeWidth, strokeColor }) {
-        if (tag) {
+        if (Array.isArray(tag)) {
           this.data.tag = tag
+        } else if (typeof tag == 'string') {
+          this.data.tag.push(tag)
         }
         if (shape) {
           this.data.shape = shape
@@ -545,8 +561,8 @@
 
     class Player extends GameObject {
       constructor(args = {}) {
-        args.tag = 'player'
-        args.shape = playerShape
+        args.tag = args.tag ?? 'player'
+        args.shape = args.shape ?? playerShape
         super(args)
         this.data.maxSpeed = args.maxSpeed ?? 50
         this.data.speed = args.speed ?? 0
@@ -594,10 +610,10 @@
     }
 
 
-    class EnemiesController extends GameObject {
-      constructor() {
-        super({})
-        this.data.tag = 'enemiesController'
+    class EnemyController extends GameObject {
+      constructor(args = {}) {
+        args.tag = args.tag ?? 'enemyController'
+        super(args)
         this.data.move = {
           delay: 5,
           distance: 1,
@@ -694,10 +710,10 @@
       }
 
       onCollide(gameObject) {
-        if (gameObject.data.tag == 'playerFire') {
-          const enemiesController = this.data.game.getByTag('enemiesController')
-          if (enemiesController.length) {
-            enemiesController[0].removeEnemy(this)
+        if (gameObject.data.tag.includes('playerFire')) {
+          const enemyController = this.data.game.getByTag('enemyController')
+          if (enemyController.length) {
+            enemyController[0].removeEnemy(this)
           }
           this.data.game.remove(gameObject)
         }
@@ -811,7 +827,7 @@
       game = new Game()
       game.add(new GameObject({ shape: bgShape, width: canvas.width, height: canvas.height }))
       generateBarricades()
-      game.add(new EnemiesController())
+      game.add(new EnemyController())
       generateEnemies()
       const playerHeight = playerShape.height * (context.player.width / playerShape.width)
       player = new Player({
