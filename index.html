@@ -151,7 +151,10 @@
         gameStartTime: 0,
         lastDrawTime: 0,
         deltaTime: 0,
-        collisionTagPairs: undefined
+        collisionTagPairs: undefined,
+        listeners: {
+          gameOver: []
+        }
       }
 
       constructor({ list, collisionTagPairs } = {}) {
@@ -170,6 +173,7 @@
 
       gameOver() {
         this.data.isPlaying = false
+        this.notify('gameOver')
       }
 
       draw() {
@@ -221,7 +225,7 @@
         return this.data.list.splice(index, deleteCount)
       }
 
-      get(index) {
+      getAt(index) {
         return this.data.list[index]
       }
 
@@ -231,10 +235,10 @@
 
       getByTag(tag) {
         if (Array.isArray(tag)) {
-          return this.data.list.filter(item => tag.every(t => item.data.tag.includes(t)))
+          return this.data.list.filter(item => tag.every(t => item.hasTag(t)))
         }
         else if (typeof tag == 'string') {
-          return this.data.list.filter(item => item.data.tag.includes(tag))
+          return this.data.list.filter(item => item.hasTag(tag))
         } else {
           return []
         }
@@ -248,17 +252,42 @@
         this.data.list = []
       }
 
-      getCollisionTagPairs() {
-        return this.data.collisionTagPairs
-      }
-
-      setCollisionTagPairs(collisionTagPairs) {
-        this.data.collisionTagPairs = collisionTagPairs
-      }
-
       addCollisionTagPairs(...collisionTagPairs) {
         this.data.collisionTagPairs = this.data.collisionTagPairs ?? []
         this.data.collisionTagPairs.push(...collisionTagPairs)
+      }
+
+      clearCollisionTagPairs() {
+        this.data.collisionTagPairs = undefined
+      }
+
+      on(eventName, callback) {
+        this.data.listeners[eventName].push(callback)
+      }
+
+      off(eventName, callback) {
+        if (this.data.listeners[eventName]?.length) {
+          const indexes = []
+          this.data.listeners[eventName].forEach((listener, i) => {
+            if (listener === callback) {
+              indexes.push(i)
+            }
+          });
+          for (let i = indexes.length - 1; i <= 0; i--) {
+            const index = indexes[i];
+            this.data.listeners[eventName].splice(index, 1)
+          }
+        }
+      }
+
+      notify(eventName, data) {
+        if (this.data.listeners[eventName]?.length) {
+          this.data.listeners[eventName].forEach((listener) => {
+            if (listener) {
+              listener(data)
+            }
+          });
+        }
       }
 
       checkCollisions() {
@@ -608,6 +637,12 @@
         }
       }
 
+      onCollide(gameObject) {
+        if (gameObject.hasTag('enemyFire')) {
+          this.data.game.gameOver()
+        }
+      }
+
       goLeft() {
         this.data.direction = Direction.LEFT
         this.data.speed = this.data.maxSpeed
@@ -739,7 +774,7 @@
       }
 
       onCollide(gameObject) {
-        if (gameObject.data.tag.includes('playerFire')) {
+        if (gameObject.hasTag('playerFire')) {
           const enemyController = this.data.game.getByTag('enemyController')
           if (enemyController.length) {
             enemyController[0].removeEnemy(this)
@@ -871,6 +906,9 @@
         position: { x: canvas.width / 2 - context.player.width / 2, y: canvas.height - playerHeight - 3 }
       })
       game.add(player)
+      game.on('gameOver', () => {
+        gameOver()
+      })
       const now = Date.now()
     }
 
@@ -920,6 +958,7 @@
 
     function replay() {
       setInitialData()
+      game?.play()
       document.getElementById('gameOverPanel').style.display = 'none'
       draw()
     }
