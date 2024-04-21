@@ -390,13 +390,13 @@
         scale: { x: 1, y: 1 },
         rotation: 0,
         color: '#000000',
-        strokeWidth: 0,
+        lineWidth: 0,
         strokeColor: '#000000',
         game: undefined,
         gameIndex: -1
       }
 
-      constructor({ tag, shape, collider, position, scale, width, height, rotation, color, strokeWidth, strokeColor }) {
+      constructor({ tag, shape, collider, position, scale, width, height, rotation, color, lineWidth, strokeColor }) {
         if (Array.isArray(tag)) {
           this.data.tag = tag
         } else if (typeof tag == 'string') {
@@ -407,8 +407,8 @@
           if (shape.color) {
             this.data.color = shape.color
           }
-          if (shape.strokeWidth != undefined) {
-            this.data.strokeWidth = shape.strokeWidth
+          if (shape.lineWidth != undefined) {
+            this.data.lineWidth = shape.lineWidth
           }
           if (shape.strokeColor) {
             this.data.strokeColor = shape.strokeColor
@@ -424,8 +424,8 @@
         if (color != undefined) {
           this.data.color = color
         }
-        if (strokeWidth != undefined) {
-          this.data.strokeWidth = strokeWidth
+        if (lineWidth != undefined) {
+          this.data.lineWidth = lineWidth
         }
         if (strokeColor != undefined) {
           this.data.rotation = strokeColor
@@ -493,9 +493,9 @@
               canvasContext.closePath()
             }
           });
-          if (this.data.strokeWidth > 0) {
+          if (this.data.lineWidth > 0) {
             canvasContext.strokeStyle = this.data.strokeColor;
-            canvasContext.lineWidth = this.data.strokeWidth;
+            canvasContext.lineWidth = this.data.lineWidth;
             canvasContext.stroke();
           }
           if (this.data.color) {
@@ -936,9 +936,7 @@
           position: {
             x: width / 2 + width * i * 2,
             y: context.canvas.width - height - 12
-          },
-          strokeWidth: 10,
-          strokeColor: '#00ff00'
+          }
         })
         game.add(barricade)
       }
