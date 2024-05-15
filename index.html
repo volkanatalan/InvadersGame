@@ -16,12 +16,14 @@
       <span id="replayButton" onclick="replay()">Replay</span>
     </div>
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/polygon-clipping@0.15.7/dist/polygon-clipping.umd.min.js"></script>
   <script>
-    Math.degreeToRadian = (degree) => {
-      return Math.PI / 180 * degree
-    }
+    const poly1 = [[[1, 0], [3, 0], [1, 2], [1, 0]]]
+    const poly2 = [[[0, 0], [2, 0], [1, 1], [0, 0]]]
+    const difference = this.polygonClipping.difference(poly1, poly2)
+    console.log("difference:", difference)
     Math.directionToRadian = (direction) => {
-      return Math.degreeToRadian(360 * direction)
+      return 2 * Math.PI * direction
     }
     Math.getRandomInt = (max) => {
       return Math.round(Math.random() * max);
@@ -32,89 +34,131 @@
 
     const Direction = { RIGHT: 0, DOWN: 0.25, LEFT: 0.5, UP: 0.75 }
 
-
-    const bgShape = {
-      vertecies: [
-        { x: 0, y: 0 },
-        { x: 0, y: 1 },
-        { x: 1, y: 1 },
-        { x: 1, y: 0 },
-      ],
-      width: 1,
-      height: 1,
-      color: '#000000'
+    class Shape {
+      image = undefined
+      width = 0
+      height = 0
+      constructor({ image, width, height } = {}) {
+        this.image = image
+        this.width = width ?? 0
+        this.height = height ?? 0
+      }
     }
 
-    const playerShape = {
-      vertecies: [
-        { x: 0, y: 5 },
-        { x: 0, y: 3 },
-        { x: 1, y: 2 },
-        { x: 3, y: 2 },
-        { x: 3, y: 1 },
-        { x: 4, y: 0 },
-        { x: 5, y: 1 },
-        { x: 5, y: 2 },
-        { x: 7, y: 2 },
-        { x: 8, y: 3 },
-        { x: 8, y: 5 },
-      ],
+    function getSvgImage(svg) {
+      const img = new Image()
+      img.src = `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
+      return img
+    }
+
+    const backgroundSvg = ({ color = '#000000', opacity = 1 } = {}) => `<svg viewBox="0 0 1 1" xmlns="http://www.w3.org/2000/svg"><rect x='0' y='0' width='1' height='1' fill="${color}" opacity="${opacity}" /></svg>`
+    const playerSvg = ({ color = '#00ff00', opacity = 1 } = {}) => `<svg viewBox="0 0 13 8" xmlns="http://www.w3.org/2000/svg"><path d="M 0 8 L 0 4 L 1 4 L 1 3 L 5 3 L 5 1 L 6 1 L 6 0 L 7 0 L 7 1 L 8 1 L 8 3 L 12 3 L 12 4 L 13 4 L 13 8 Z" fill="${color}" opacity="${opacity}" /></svg>`
+    const alien1Svg = ({ color = '#ffffff', opacity = 1 } = {}) => `<svg viewBox="0 0 8 8" xmlns="http://www.w3.org/2000/svg"><path d="M 0 3 L 1 3 L 1 2 L 2 2 L 2 1 L 3 1 L 3 0 L 5 0 L 5 1 L 6 1 L 6 2 L 7 2 L 7 3 L 8 3 L 8 5 L 7 5 L 7 6 L 8 6 L 8 7 L 7 7 L 7 8 L 6 8 L 6 7 L 7 7 L 7 6 L 6 6 L 6 3 L 5 3 L 5 4 L 6 4 L 6 5 L 5 5 L 5 6 L 3 6 L 3 3 L 2 3 L 2 4 L 3 4 L 3 5 L 2 5 L 2 6 L 1 6 L 1 7 L 2 7 L 2 8 L 1 8 L 1 7 L 0 7 L 0 6 L 1 6 L 1 5 L 0 5 Z" fill="${color}" opacity="${opacity}" /></svg>`
+    const alien2Svg = ({ color = '#ffffff', opacity = 1 } = {}) => `<svg viewBox="0 0 8 8" xmlns="http://www.w3.org/2000/svg"><path d="M 0 5 L 0 3 L 1 3 L 1 2 L 2 2 L 2 1 L 3 1 L 3 0 L 5 0 L 5 1 L 6 1 L 6 2 L 7 2 L 7 3 L 8 3 L 8 5 L 6 5 L 6 3 L 5 3 L 5 4 L 6 4 L 6 5 L 3 5 L 3 3 L 2 3 L 2 4 L 3 4 L 3 5 Z M 5 6 L 5 5 L 6 5 L 6 6 L 7 6 L 7 7 L 8 7 L 8 8 L 7 8 L 7 7 L 6 7 L 6 6 L 5 6 L 5 7 L 6 7 L 6 8 L 5 8 L 5 7 L 3 7 L 3 8 L 2 8 L 2 7 L 1 7 L 1 8 L 0 8 L 0 7 L 1 7 L 1 6 L 2 6 L 2 5 L 3 5 L 3 6 L 2 6 L 2 7 L 3 7 L 3 6 Z" fill="${color}" opacity="${opacity}" /></svg>`
+    const bulletSvg = ({ color = '#ffffff', opacity = 1 } = {}) => `<svg viewBox="0 0 1 3" xmlns="http://www.w3.org/2000/svg"><rect x='0' y='0' width='1' height='3' fill="${color}" opacity="${opacity}" /></svg>`
+    const barricadeSvg = ({ color = '#00ff00', opacity = 1 } = {}) => `<svg viewBox="0 0 8 6" xmlns="http://www.w3.org/2000/svg"><path d="M 0 6 L 0 2 L 2 0 L 6 0 L 8 2 L 8 6 L 6 6 L 6 5 L 5 4 L 3 4 L 2 5 L 2 6 Z" fill="${color}" opacity="${opacity}" /></svg>`
+
+    const bgShape = new Shape({
+      image: getSvgImage(backgroundSvg()),
+      width: 1,
+      height: 1
+    })
+
+    const playerShape = new Shape({
+      image: getSvgImage(playerSvg()),
       width: 8,
-      height: 5,
-      color: '#00ff00'
-    }
-    playerShape.collider = { vertecies: playerShape.vertecies, width: playerShape.width, height: playerShape.height }
-
-    const enemyShape = {
-      vertecies: [
-        { x: 0, y: 0 },
-        { x: 0, y: 1 },
-        { x: 1, y: 1 },
-        { x: 1, y: 0 },
-      ],
-      width: 1,
-      height: 1,
-      color: '#ffffff'
-    }
-    enemyShape.collider = { vertecies: enemyShape.vertecies, width: enemyShape.width, height: enemyShape.height }
-
-    const bulletShape = {
-      vertecies: [
-        { x: 0, y: 0 },
-        { x: 0, y: 3 },
-        { x: 1, y: 3 },
-        { x: 1, y: 0 },
-      ],
-      width: 1,
-      height: 3,
-      color: '#ffffff'
-    }
-    bulletShape.collider = { vertecies: bulletShape.vertecies, width: bulletShape.width, height: bulletShape.height }
-
-    const barricadeShape = {
-      vertecies: [
-        { x: 0, y: 6 },
-        { x: 0, y: 2 },
-        { x: 2, y: 0 },
-        { x: 6, y: 0 },
-        { x: 8, y: 2 },
-        { x: 8, y: 6 },
-        { x: 6, y: 6 },
-        { x: 6, y: 5 },
-        { x: 5, y: 4 },
-        { x: 3, y: 4 },
-        { x: 2, y: 5 },
-        { x: 2, y: 6 },
-      ],
+      height: 5
+    })
+    const playerCollider = {
+      tag: ['player'],
+      vertecies: [[
+        [0, 8],
+        [0, 4],
+        [1, 4],
+        [1, 3],
+        [5, 3],
+        [5, 1],
+        [6, 1],
+        [6, 0],
+        [7, 0],
+        [7, 1],
+        [8, 1],
+        [8, 3],
+        [12, 3],
+        [12, 4],
+        [13, 4],
+        [13, 8],
+      ]],
       width: 8,
-      height: 6,
-      color: '#00ff00'
+      height: 8
     }
-    barricadeShape.collider = { vertecies: barricadeShape.vertecies, width: barricadeShape.width, height: barricadeShape.height }
+
+    const alien1_1Shape = new Shape({
+      image: getSvgImage(alien1Svg()),
+      width: 8,
+      height: 8
+    })
+    const alien1_2Shape = new Shape({
+      image: getSvgImage(alien2Svg()),
+      width: 8,
+      height: 8
+    })
+    const alien1Collider = {
+      tag: ['enemy'],
+      vertecies: [[
+        [0, 0],
+        [0, 8],
+        [8, 8],
+        [8, 0]
+      ]],
+      width: 8,
+      height: 8
+    }
+
+    const bulletShape = new Shape({
+      image: getSvgImage(bulletSvg()),
+      width: 1,
+      height: 3
+    })
+    const bulletCollider = {
+      tag: ['bullet'],
+      vertecies: [[
+        [0, 0],
+        [0, 3],
+        [1, 3],
+        [1, 0]
+      ]],
+      width: 1,
+      height: 3
+    }
+
+    const barricadeShape = new Shape({
+      image: getSvgImage(barricadeSvg()),
+      width: 8,
+      height: 6
+    })
+    const barricadeCollider = {
+      tag: ['barricade'],
+      vertecies: [[
+        [0, 6],
+        [0, 2],
+        [2, 0],
+        [6, 0],
+        [8, 2],
+        [8, 6],
+        [6, 6],
+        [6, 5],
+        [5, 4],
+        [3, 4],
+        [2, 5],
+        [2, 6]
+      ]],
+      width: 8,
+      height: 6
+    }
 
 
-    const context = {
-      keyState: {},
+    const config = {
       dp: 1,
       canvas: {
         width: 100,
@@ -145,45 +189,45 @@
 
 
     class Game {
-      data = {
-        list: [],
-        isPlaying: false,
-        gameStartTime: 0,
-        lastDrawTime: 0,
-        deltaTime: 0,
-        collisionTagPairs: undefined,
-        listeners: {
-          gameOver: []
-        }
+      gameObjects = []
+      keyState = {}
+      isPlaying = false
+      gameStartTime = 0
+      lastDrawTime = 0
+      deltaTime = 0
+      collisionTagPairs = undefined
+      listeners = {
+        gameOver: []
       }
 
-      constructor({ list, collisionTagPairs } = {}) {
-        if (list) {
-          this.data.list = list
+      constructor({ gameObjects, collisionTagPairs } = {}) {
+        if (gameObjects) {
+          this.gameObjects = gameObjects
         }
         if (collisionTagPairs) {
-          this.data.collisionTagPairs = collisionTagPairs
+          this.collisionTagPairs = collisionTagPairs
         }
       }
 
       play() {
-        this.data.isPlaying = true
-        this.data.gameStartTime = Date.now()
+        this.isPlaying = true
+        this.gameStartTime = Date.now()
       }
 
       gameOver() {
-        this.data.isPlaying = false
+        this.isPlaying = false
         this.notify('gameOver')
       }
 
       draw() {
-        const { canvasContext, dp } = context
-        const { deltaTime, lastDrawTime, isPlaying, list } = this.data
+        const { canvasContext, dp } = config
+        const { deltaTime, lastDrawTime, isPlaying, gameObjects } = this
         if (canvasContext && isPlaying) {
-          this.data.deltaTime = (Date.now() - lastDrawTime) / 1000
-          this.data.lastDrawTime = Date.now()
+          this.deltaTime = (Date.now() - lastDrawTime) / 1000
+          this.lastDrawTime = Date.now()
           this.checkCollisions()
-          list.forEach(gameObject => {
+          canvasContext.reset()
+          gameObjects.forEach(gameObject => {
             if (gameObject.onFrame) {
               gameObject.onFrame({ deltaTime })
             }
@@ -196,93 +240,93 @@
 
       add(...gameObjects) {
         gameObjects.forEach(gameObject => {
-          gameObject.data.game = this
-          gameObject.data.gameIndex = this.data.list.length
-          this.data.list.push(gameObject)
+          gameObject.game = this
+          gameObject.index = this.gameObjects.length
+          this.gameObjects.push(gameObject)
         });
       }
 
       addAt(index, ...gameObjects) {
         gameObjects.forEach((gameObject, i) => {
-          gameObject.data.game = this
-          gameObject.data.gameIndex = index + i
+          gameObject.game = this
+          gameObject.index = index + i
         });
-        this.data.list = [
-          ...this.data.list.slice(0, index),
+        this.gameObjects = [
+          ...this.gameObjects.slice(0, index),
           ...gameObjects,
-          ...this.data.list.slice(index)
+          ...this.gameObjects.slice(index)
         ];
       }
 
       remove(gameObject) {
-        const index = this.data.list.findIndex(item => item == gameObject)
+        const index = this.gameObjects.findIndex(item => item == gameObject)
         if (index > -1) {
-          this.data.list.splice(index, 1)
+          this.gameObjects.splice(index, 1)
         }
       }
 
       removeAt(index, deleteCount = 1) {
-        return this.data.list.splice(index, deleteCount)
+        return this.gameObjects.splice(index, deleteCount)
       }
 
       getAt(index) {
-        return this.data.list[index]
+        return this.gameObjects[index]
       }
 
       getAll() {
-        return this.data.list
+        return this.gameObjects
       }
 
       getByTag(tag) {
         if (Array.isArray(tag)) {
-          return this.data.list.filter(item => tag.every(t => item.hasTag(t)))
+          return this.gameObjects.filter(item => tag.every(t => item.hasTag(t)))
         }
         else if (typeof tag == 'string') {
-          return this.data.list.filter(item => item.hasTag(tag))
+          return this.gameObjects.filter(item => item.hasTag(tag))
         } else {
           return []
         }
       }
 
       indexOf(gameObject) {
-        return this.data.list.indexOf(gameObject)
+        return this.gameObjects.indexOf(gameObject)
       }
 
       clear() {
-        this.data.list = []
+        this.gameObjects = []
       }
 
       addCollisionTagPairs(...collisionTagPairs) {
-        this.data.collisionTagPairs = this.data.collisionTagPairs ?? []
-        this.data.collisionTagPairs.push(...collisionTagPairs)
+        this.collisionTagPairs = this.collisionTagPairs ?? []
+        this.collisionTagPairs.push(...collisionTagPairs)
       }
 
       clearCollisionTagPairs() {
-        this.data.collisionTagPairs = undefined
+        this.collisionTagPairs = undefined
       }
 
       on(eventName, callback) {
-        this.data.listeners[eventName].push(callback)
+        this.listeners[eventName].push(callback)
       }
 
       off(eventName, callback) {
-        if (this.data.listeners[eventName]?.length) {
+        if (this.listeners[eventName]?.length) {
           const indexes = []
-          this.data.listeners[eventName].forEach((listener, i) => {
+          this.listeners[eventName].forEach((listener, i) => {
             if (listener === callback) {
               indexes.push(i)
             }
           });
           for (let i = indexes.length - 1; i <= 0; i--) {
             const index = indexes[i];
-            this.data.listeners[eventName].splice(index, 1)
+            this.listeners[eventName].splice(index, 1)
           }
         }
       }
 
       notify(eventName, data) {
-        if (this.data.listeners[eventName]?.length) {
-          this.data.listeners[eventName].forEach((listener) => {
+        if (this.listeners[eventName]?.length) {
+          this.listeners[eventName].forEach((listener) => {
             if (listener) {
               listener(data)
             }
@@ -291,24 +335,53 @@
       }
 
       checkCollisions() {
-        if (this.data.collisionTagPairs == undefined || this.data.collisionTagPairs.length > 0) {
-          const gameObjects = this.data.list.filter(gameObject => gameObject.data.collider)
+        if (this.collisionTagPairs == undefined || this.collisionTagPairs.length > 0) {
+          const gameObjects = this.gameObjects.filter(gameObject => gameObject.colliders.length)
           if (gameObjects.length > 1) {
             for (let i = 0; i < gameObjects.length; i++) {
-              const gameObject1 = gameObjects[i];
               for (let j = i + 1; j < gameObjects.length; j++) {
+                const gameObject1 = gameObjects[i];
                 const gameObject2 = gameObjects[j];
-                const shouldCheck = this.data.collisionTagPairs == undefined || this.data.collisionTagPairs.some(pair =>
-                  (gameObject1.hasTag(pair[0]) && gameObject2.hasTag(pair[1])) ||
-                  (gameObject1.hasTag(pair[1]) && gameObject2.hasTag(pair[0]))
-                )
-                if (shouldCheck) {
-                  if (this.polyPolyCollision(gameObject1.data.collider.vertecies, gameObject2.data.collider.vertecies)) {
-                    if (gameObject1.onCollide) {
-                      gameObject1.onCollide({ gameObject: gameObject2 })
-                    }
-                    if (gameObject2.onCollide) {
-                      gameObject2.onCollide({ gameObject: gameObject1 })
+                if (gameObject1.colliders?.length && gameObject2.colliders?.length) {
+                  for (let k = 0; k < gameObject1.colliders.length; k++) {
+                    for (let l = 0; l < gameObject2.colliders.length; l++) {
+                      const collider1 = gameObject1.colliders[k]
+                      const collider2 = gameObject2.colliders[l]
+                      const shouldCheck = this.collisionTagPairs == undefined || this.collisionTagPairs.some(pair => {
+                        return (collider1.hasTag(pair[0]) && collider2.hasTag(pair[1])) ||
+                          (collider1.hasTag(pair[1]) && collider2.hasTag(pair[0]))
+                      })
+                      if (shouldCheck) {
+                        for (let m = 0; m < collider1.vertecies.length; m++) {
+                          for (let n = 0; n < collider2.vertecies.length; n++) {
+                            const vertexGroup1 = collider1.vertecies[m];
+                            const vertexGroup2 = collider2.vertecies[n];
+                            if (this.polyPolyCollision(vertexGroup1, vertexGroup2)) {
+                              console.log("onCollide")
+                              if (gameObject1.onCollide) {
+                                gameObject1.onCollide({
+                                  collider: collider1,
+                                  otherCollider: collider2,
+                                  vertexGroup: vertexGroup1,
+                                  vertexGroupIndex: m,
+                                  otherVertexGroup: vertexGroup2,
+                                  otherVertexGroupIndex: n
+                                })
+                              }
+                              if (gameObject2.onCollide) {
+                                gameObject2.onCollide({
+                                  collider: collider2,
+                                  otherCollider: collider1,
+                                  vertexGroup: vertexGroup2,
+                                  vertexGroupIndex: n,
+                                  otherVertexGroup: vertexGroup1,
+                                  otherVertexGroupIndex: m
+                                })
+                              }
+                            }
+                          }
+                        }
+                      }
                     }
                   }
                 }
@@ -319,17 +392,19 @@
       }
 
       polyPolyCollision(p1, p2) {
-        let next = 0;
-        for (let current = 0; current < p1.length; current++) {
-          next = current + 1;
-          if (next == p1.length) next = 0;
-          const vc = p1[current];
-          const vn = p1[next];
-          if (this.polyLineCollision(p2, vc.x, vc.y, vn.x, vn.y)) {
-            return true
-          }
-          if (this.polyPointCollision(p1, p2[0].x, p2[0].y)) {
-            return true
+        if (p1 && p2) {
+          let next = 0;
+          for (let current = 0; current < p1.length; current++) {
+            next = current + 1;
+            if (next == p1.length) next = 0;
+            const vc = p1[current];
+            const vn = p1[next];
+            if (this.polyLineCollision(p2, vc[0], vc[1], vn[0], vn[1])) {
+              return true
+            }
+            if (this.polyPointCollision(p1, p2[0][0], p2[0][1])) {
+              return true
+            }
           }
         }
         return false;
@@ -340,10 +415,10 @@
         for (let current = 0; current < vertices.length; current++) {
           next = current + 1;
           if (next == vertices.length) next = 0;
-          let x3 = vertices[current].x;
-          let y3 = vertices[current].y;
-          let x4 = vertices[next].x;
-          let y4 = vertices[next].y;
+          let x3 = vertices[current][0];
+          let y3 = vertices[current][1];
+          let x4 = vertices[next][0];
+          let y4 = vertices[next][1];
           if (this.lineLineCollision(x1, y1, x2, y2, x3, y3, x4, y4)) {
             return true;
           }
@@ -368,8 +443,8 @@
           if (next == vertices.length) next = 0;
           let vc = vertices[current];
           let vn = vertices[next];
-          if (((vc.y > py && vn.y < py) || (vc.y < py && vn.y > py)) &&
-            (px < (vn.x - vc.x) * (py - vc.y) / (vn.y - vc.y) + vc.x)) {
+          if (((vc[1] > py && vn[1] < py) || (vc[1] < py && vn[1] > py)) &&
+            (px < (vn[0] - vc[0]) * (py - vc[1]) / (vn[1] - vc[1]) + vc[0])) {
             collision = !collision;
           }
         }
@@ -379,240 +454,332 @@
 
 
     class GameObject {
-      data = {
-        tag: [],
-        shape: {},
-        collider: undefined,
-        vertecies: [],
-        position: { x: 0, y: 0 },
-        width: 0,
-        height: 0,
-        scale: { x: 1, y: 1 },
-        rotation: 0,
-        color: '#000000',
-        lineWidth: 0,
-        strokeColor: '#000000',
-        game: undefined,
-        gameIndex: -1
-      }
+      tag = []
+      position = { x: 0, y: 0 }
+      width = 0
+      height = 0
+      scale = { x: 1, y: 1 }
+      rotation = 0
+      shape = new Shape()
+      colliders = []
+      game = undefined
+      index = -1
+      children = []
+      parent = undefined
 
-      constructor({ tag, shape, collider, position, scale, width, height, rotation, color, lineWidth, strokeColor }) {
+      constructor(args = {}) {
+        const { tag, shape, colliders, position, scale, width, height, rotation } = args
         if (Array.isArray(tag)) {
-          this.data.tag = tag
+          this.tag = tag
         } else if (typeof tag == 'string') {
-          this.data.tag.push(tag)
+          this.tag.push(tag)
         }
         if (shape) {
-          this.data.shape = shape
-          if (shape.color) {
-            this.data.color = shape.color
-          }
-          if (shape.lineWidth != undefined) {
-            this.data.lineWidth = shape.lineWidth
-          }
-          if (shape.strokeColor) {
-            this.data.strokeColor = shape.strokeColor
-          }
+          this.shape = shape
         }
-        if (collider) {
-          this.data.shape.collider = collider
-        }
-        if (position) {
-          this.data.position.x = typeof position.x == 'number' ? position.x : this.data.position.x
-          this.data.position.y = typeof position.y == 'number' ? position.y : this.data.position.y
-        }
-        if (color != undefined) {
-          this.data.color = color
-        }
-        if (lineWidth != undefined) {
-          this.data.lineWidth = lineWidth
-        }
-        if (strokeColor != undefined) {
-          this.data.rotation = strokeColor
-        }
-        if (rotation != undefined) {
-          this.data.rotation = rotation
-        }
-        if (typeof scale == 'object' && !Array.isArray(scale)) {
-          this.data.scale = {
-            x: scale.x === undefined ? scale.y ?? this.data.scale.x : scale.x,
-            y: scale.y === undefined ? scale.x ?? this.data.scale.y : scale.y,
-          }
-        } else if (width != undefined || height != undefined) {
-          this._setSize(width, height)
-        }
-        this.updateData()
-      }
-
-      updateData() {
-        if (this.data.shape.vertecies) {
-          this.data.vertecies = JSON.parse(JSON.stringify(this.data.shape.vertecies))
-          this.data.width = this.data.shape.width * this.data.scale.x
-          this.data.height = this.data.shape.height * this.data.scale.y
-          this.data.vertecies.forEach(vertex => {
-            // Scale
-            vertex.x *= this.data.scale.x
-            vertex.y *= this.data.scale.y
-
-            // Move
-            vertex.x += this.data.position.x
-            vertex.y += this.data.position.y
-
-            // TODO: Rotate
+        if (Array.isArray(colliders)) {
+          this.colliders = colliders
+          this.colliders.forEach(collider => {
+            collider.gameObject = this
           })
         }
-        if (this.data.shape.collider) {
-          this.data.collider = JSON.parse(JSON.stringify(this.data.shape.collider))
-          if (this.data.scale.x !== 1 || this.data.scale.y !== 1)
-            this.data.collider.vertecies.forEach(vertex => {
-              // Scale
-              vertex.x *= this.data.scale.x
-              vertex.y *= this.data.scale.y
-
-              // Move
-              vertex.x += this.data.position.x
-              vertex.y += this.data.position.y
-
-              // TODO: Rotate
-            })
+        if (position) {
+          this.position.x = typeof position.x == 'number' ? position.x : this.position.x
+          this.position.y = typeof position.y == 'number' ? position.y : this.position.y
+        }
+        if (rotation != undefined) {
+          this.rotation = rotation
+        }
+        if (typeof scale == 'object' && !Array.isArray(scale)) {
+          this.scale = {
+            x: scale.x === undefined ? scale.y ?? this.scale.x : scale.x,
+            y: scale.y === undefined ? scale.x ?? this.scale.y : scale.y,
+          }
+        } else if (typeof scale == 'number') {
+          this.scale = {
+            x: scale,
+            y: scale,
+          }
+        } else if (width != undefined || height != undefined) {
+          this.setSize(width, height)
         }
       }
 
       draw() {
-        const { canvasContext, dp } = context
-        if (this.data.vertecies.length && canvasContext) {
-          this.data.vertecies.forEach((vertex, i) => {
-            if (i === 0) {
-              canvasContext.beginPath();
-              canvasContext.moveTo(vertex.x * dp, vertex.y * dp);
-            }
-            else {
-              canvasContext.lineTo(vertex.x * dp, vertex.y * dp);
-            }
-            if (i === this.data.vertecies.length - 1) {
-              canvasContext.closePath()
-            }
-          });
-          if (this.data.lineWidth > 0) {
-            canvasContext.strokeStyle = this.data.strokeColor;
-            canvasContext.lineWidth = this.data.lineWidth;
-            canvasContext.stroke();
-          }
-          if (this.data.color) {
-            canvasContext.fillStyle = this.data.color;
-            canvasContext.fill()
+        const { canvasContext, dp } = config
+        if (canvasContext) {
+          if (this.shape.image) {
+            const { position, width, height } = this
+            canvasContext.drawImage(this.shape.image, position.x * dp, position.y * dp, width * dp, height * dp)
           }
         }
       }
 
       hasTag(tag) {
-        return this.data.tag.includes(tag)
+        return this.tag.includes(tag)
+      }
+
+      addTag(tag) {
+        this.tag.push(tag)
       }
 
       removeTag(tag) {
-        const index = item.data.tag.findIndex(t => t == tag)
+        const index = item.tag.findIndex(t => t == tag)
         if (index > -1) {
-          item.data.tag.splice(index, 1)
+          item.tag.splice(index, 1)
         }
       }
 
       clearTag() {
-        item.data.tag = []
-      }
-
-      _scaleTo(x, y) {
-        if (x != undefined) {
-          this.data.scale.x = x
-          this.data.scale.y = y === undefined ? x : y
-          return this.data.scale
-        }
-        return false
+        item.tag = []
       }
 
       scaleTo(x, y) {
-        if (this._scaleTo(x, y)) {
-          this.updateData()
-        }
-      }
-
-      _scale(x, y) {
         if (x != undefined) {
-          this.data.scale.x *= x
-          this.data.scale.y = y === undefined ? this.data.scale.y * x : this.data.scale.y * y
-          return this.data.scale
+          this.scale.x = x
+          this.scale.y = y === undefined ? x : y
+          this.width = this.shape.width * this.scale.x
+          this.height = this.shape.height * this.scale.y
+          this.notifyCollidersDataChanged()
+          return this.scale
         }
         return false
       }
 
       scale(x, y) {
-        if (this._scale(x, y)) {
-          this.updateData()
-        }
-      }
-
-      _setSize(width, height) {
-        if (width != undefined || height != undefined) {
-          const scaleX = width != undefined ? width / this.data.shape?.width : height / this.data.shape?.height
-          const scaleY = height != undefined ? height / this.data.shape?.height : width / this.data.shape?.width
-          return this._scaleTo(scaleX, scaleY)
+        if (x != undefined) {
+          this.scale.x *= x
+          this.scale.y *= y === undefined ? x : y
+          this.notifyCollidersDataChanged()
+          return this.scale
         }
         return false
       }
 
       setSize(width, height) {
-        if (this._setSize(width, height)) {
-          this.updateData()
-        }
-      }
-
-      _move(x, y) {
-        if (x || y) {
-          this.data.position.x += (x || 0)
-          this.data.position.y += (y || 0)
-          return this.data.position
+        if (width != undefined || height != undefined) {
+          const scaleX = width != undefined ? width / this.shape?.width : height / this.shape?.height
+          const scaleY = height != undefined ? height / this.shape?.height : width / this.shape?.width
+          return this.scaleTo(scaleX, scaleY)
         }
         return false
       }
 
       move(x, y) {
-        if (this._move(x, y)) {
-          this.updateData()
-        }
-      }
-
-      _moveTo(x, y) {
-        if (x != undefined || y != undefined) {
-          if (x != undefined) {
-            this.data.position.x = x
-          }
-          if (y != undefined) {
-            this.data.position.y = y
-          }
-          return this.data.position
+        if (x || y) {
+          this.position.x += (x || 0)
+          this.position.y += (y || 0)
+          this.notifyCollidersDataChanged()
+          return this.position
         }
         return false
       }
 
       moveTo(x, y) {
-        if (this._moveTo(x, y)) {
-          this.updateData()
-        }
-      }
-
-      _moveTowards(direction, distance) {
-        if (direction != undefined && distance) {
-          const rad = Math.directionToRadian(this.data.direction)
-          this.data.position.x += Math.cos(rad) * distance
-          this.data.position.y += Math.sin(rad) * distance
-          return this.data.position
+        if (x != undefined || y != undefined) {
+          if (x != undefined) {
+            this.position.x = x
+          }
+          if (y != undefined) {
+            this.position.y = y
+          }
+          this.notifyCollidersDataChanged()
+          return this.position
         }
         return false
       }
 
       moveTowards(direction, distance) {
-        if (this._moveTowards(direction, distance)) {
-          this.updateData()
+        if (direction != undefined && distance) {
+          const rad = Math.directionToRadian(this.direction)
+          this.position.x += Math.cos(rad) * distance
+          this.position.y += Math.sin(rad) * distance
+          this.notifyCollidersDataChanged()
+          return this.position
         }
+        return false
+      }
+
+      addCollider(collider) {
+        if (collider instanceof Collider) {
+          collider.parent = this
+          this.colliders.push(collider)
+          collider.onParentDataChanged()
+          return true
+        }
+        return false
+      }
+
+      removeCollider(collider) {
+        if (collider && collider instanceof Collider) {
+          const index = this.colliders.findIndex(c => c === collider)
+          if (index > -1) {
+            this.colliders.splice(index, 1)
+            return true
+          }
+        }
+        return false
+      }
+
+      removeColliderAt(index) {
+        if (this.colliders.splice(index, 1)) return true
+        return false
+      }
+
+      notifyCollidersDataChanged() {
+        this.colliders.forEach(collider => {
+          if (collider.onParentDataChanged) {
+            collider.onParentDataChanged()
+          }
+        })
+      }
+    }
+
+
+    class Collider {
+      tag = []
+      initialData = {
+        width: 0,
+        height: 0,
+        vertecies: []
+      }
+      position = { x: 0, y: 0 }
+      scenePosition = { x: 0, y: 0 }
+      width = 0
+      height = 0
+      scale = { x: 1, y: 1 }
+      vertecies = []
+      parent = undefined
+
+      constructor(args = {}) {
+        const { tag, vertecies, width, height } = args
+        if (tag) {
+          if (Array.isArray(tag)) {
+            this.tag = tag
+          } else if (typeof tag == 'string') {
+            this.tag.push(tag)
+          }
+        }
+        if (vertecies) this.vertecies = vertecies
+        if (typeof width == 'number') this.width = width
+        if (typeof height == 'number') this.height = height
+        this.initialData.width = this.width
+        this.initialData.height = this.height
+        this.initialData.vertecies = JSON.parse(JSON.stringify(this.vertecies))
+      }
+
+      updateVertecies() {
+        this.vertecies = this.initialData.vertecies.map(vertexGroup => {
+          return vertexGroup.map(vertex => {
+            const newVertexGroup = []
+            // Scale
+            newVertexGroup[0] = vertex[0] * this.scale.x
+            newVertexGroup[1] = vertex[1] * this.scale.y
+
+            // Move
+            newVertexGroup[0] += this.scenePosition.x
+            newVertexGroup[1] += this.scenePosition.y
+
+            // TODO: Rotate
+
+            return newVertexGroup
+          })
+        })
+      }
+
+      setSize(width, height) {
+        if (width != undefined || height != undefined) {
+          const scaleX = width != undefined ? width / this.initialData.width : height / this.initialData.height
+          const scaleY = height != undefined ? height / this.initialData.height : width / this.initialData.width
+          return this.scaleTo(scaleX, scaleY)
+        }
+        return false
+      }
+
+      scale(x, y) {
+        if (x != undefined) {
+          this.scale.x *= x
+          this.scale.y *= y === undefined ? x : y
+          this.width *= x
+          this.height *= y === undefined ? x : y
+          this.updateVertecies()
+          return this.scale
+        }
+        return false
+      }
+
+      scaleTo(x, y) {
+        if (x != undefined) {
+          this.scale.x = x
+          this.scale.y = y === undefined ? x : y
+          this.width = this.initialData.width * x
+          this.height = y === undefined ? this.initialData.height * x : this.initialData.height * y
+          this.updateVertecies()
+          return this.scale
+        }
+        return false
+      }
+
+      move(x, y) {
+        if (x || y) {
+          this.position.x += (x || 0)
+          this.position.y += (y || 0)
+          this.updateVertecies()
+          return this.position
+        }
+        return false
+      }
+
+      moveTo(x, y) {
+        if (x != undefined || y != undefined) {
+          if (x != undefined) {
+            this.position.x = x
+          }
+          if (y != undefined) {
+            this.position.y = y
+          }
+          this.updateVertecies()
+          return this.position
+        }
+        return false
+      }
+
+      moveTowards(direction, distance) {
+        if (direction != undefined && distance) {
+          const rad = Math.directionToRadian(this.direction)
+          this.position.x += Math.cos(rad) * distance
+          this.position.y += Math.sin(rad) * distance
+          this.updateVertecies()
+          return this.position
+        }
+        return false
+      }
+
+      hasTag(tag) {
+        return this.tag.includes(tag)
+      }
+
+      addTag(tag) {
+        this.tag.push(tag)
+      }
+
+      removeTag(tag) {
+        const index = item.tag.findIndex(t => t == tag)
+        if (index > -1) {
+          item.tag.splice(index, 1)
+        }
+      }
+
+      clearTag() {
+        item.tag = []
+      }
+
+      onParentDataChanged() {
+        this.scenePosition = {
+          x: this.parent.position.x + this.position.x,
+          y: this.parent.position.y + this.position.y
+        }
+        this.updateVertecies()
       }
     }
 
@@ -622,53 +789,58 @@
         args.tag = args.tag ?? 'player'
         args.shape = args.shape ?? playerShape
         super(args)
-        this.data.maxSpeed = args.maxSpeed ?? 50
-        this.data.speed = args.speed ?? 0
-        this.data.direction = args.direction ?? Direction.RIGHT
+        this.maxSpeed = args.maxSpeed ?? 50
+        this.speed = args.speed ?? 0
+        this.direction = args.direction ?? Direction.RIGHT
       }
 
       onFrame({ deltaTime }) {
-        this.moveTowards(this.data.direction, this.data.speed * deltaTime)
-        if (this.data.position.x + this.data.width / 2 > context.canvas.width) {
-          this.moveTo(context.canvas.width - this.data.width / 2)
+        this.moveTowards(this.direction, this.speed * deltaTime)
+        if (this.position.x + this.width / 2 > config.canvas.width) {
+          this.moveTo(config.canvas.width - this.width / 2)
         }
-        else if (this.data.position.x + this.data.width / 2 < 0) {
-          this.moveTo(-this.data.width / 2)
+        else if (this.position.x + this.width / 2 < 0) {
+          this.moveTo(-this.width / 2)
         }
       }
 
-      onCollide({ gameObject }) {
-        if (gameObject.hasTag('enemyFire')) {
-          this.data.game.gameOver()
+      onCollide({ otherCollider }) {
+        if (otherCollider.hasTag('enemyFire')) {
+          this.game.gameOver()
         }
       }
 
       goLeft() {
-        this.data.direction = Direction.LEFT
-        this.data.speed = this.data.maxSpeed
+        this.direction = Direction.LEFT
+        this.speed = this.maxSpeed
       }
 
       goRight() {
-        this.data.direction = Direction.RIGHT
-        this.data.speed = this.data.maxSpeed
+        this.direction = Direction.RIGHT
+        this.speed = this.maxSpeed
       }
 
       stop() {
-        this.data.speed = 0
+        this.speed = 0
       }
 
       fire() {
-        if (!this.data.game.getByTag('playerFire').length) {
-          this.data.game.addAt(this.data.gameIndex, new Bullet({
+        if (!this.game.getByTag('playerFire').length) {
+          const bullet = new Bullet({
             tag: ['bullet', 'playerFire'],
             position: {
-              x: this.data.position.x + this.data.width / 2 - context.playerFire.width / 2,
-              y: this.data.position.y
+              x: this.position.x + this.width / 2 - config.playerFire.width / 2,
+              y: this.position.y
             },
-            width: context.playerFire.width,
-            height: context.playerFire.height,
-            speed: context.playerFire.speed,
-          }))
+            width: config.playerFire.width,
+            height: config.playerFire.height,
+            speed: config.playerFire.speed,
+          })
+          const colliderBullet = new Collider(bulletCollider)
+          colliderBullet.setSize(bullet.width, bullet.height)
+          colliderBullet.tag = ['bullet', 'playerFire']
+          bullet.addCollider(colliderBullet)
+          this.game.addAt(this.index, bullet)
         }
       }
     }
@@ -678,7 +850,7 @@
       constructor(args = {}) {
         args.tag = args.tag ?? 'enemyController'
         super(args)
-        this.data.move = {
+        this.move = {
           delay: 5,
           distance: 1,
           lastEnemyMoveTime: 0,
@@ -687,78 +859,84 @@
           toDown: false,
           willChangeDirection: false
         }
-        this.data.fire = {
+        this.fire = {
           maxDelay: 5000,
           nextFireTime: 0
         }
-        this.data.fire.nextFireTime = Date.now() + Math.getRandomInt(this.data.fire.maxDelay)
+        this.fire.nextFireTime = Date.now() + Math.getRandomInt(this.fire.maxDelay)
       }
 
       onFrame({ deltaTime }) {
         const enemies = game.getByTag('enemy')
         if (enemies.length) {
-          const nextEnemyIndexToMove = (this.data.move.lastMovedEnemyIndex + 1) % enemies.length
-          const passedTime = Date.now() - this.data.move.lastEnemyMoveTime
-          if (passedTime >= this.data.move.delay) {
-            if (this.data.move.toDown) {
+          const nextEnemyIndexToMove = (this.move.lastMovedEnemyIndex + 1) % enemies.length
+          const passedTime = Date.now() - this.move.lastEnemyMoveTime
+          if (passedTime >= this.move.delay) {
+            enemies[nextEnemyIndexToMove].switchShape()
+            if (this.move.toDown) {
               // Move to down
-              enemies[nextEnemyIndexToMove].move(0, this.data.move.distance)
-            } else if (this.data.move.toRight) {
+              enemies[nextEnemyIndexToMove].move(0, this.move.distance)
+            } else if (this.move.toRight) {
               // Move to right
               const enemy = enemies[nextEnemyIndexToMove]
-              enemy.move(this.data.move.distance)
-              if (enemy.data.position.x + characterSize + this.data.move.distance > enemyMovementArea.right) {
-                this.data.move.willChangeDirection = true
+              enemy.move(this.move.distance)
+              if (enemy.position.x + characterSize + this.move.distance > enemyMovementArea.right) {
+                this.move.willChangeDirection = true
               }
             } else {
               // Move to left
               const enemy = enemies[nextEnemyIndexToMove]
-              enemy.move(-this.data.move.distance)
-              if (enemy.data.position.x - this.data.move.distance < enemyMovementArea.left) {
-                this.data.move.willChangeDirection = true
+              enemy.move(-this.move.distance)
+              if (enemy.position.x - this.move.distance < enemyMovementArea.left) {
+                this.move.willChangeDirection = true
               }
             }
 
             if (nextEnemyIndexToMove == enemies.length - 1) {
-              if (this.data.move.toDown) {
-                this.data.move.toDown = false
-              } else if (this.data.move.willChangeDirection) {
-                this.data.move.willChangeDirection = false
-                this.data.move.toRight = !this.data.move.toRight
-                this.data.move.toDown = true
+              if (this.move.toDown) {
+                this.move.toDown = false
+              } else if (this.move.willChangeDirection) {
+                this.move.willChangeDirection = false
+                this.move.toRight = !this.move.toRight
+                this.move.toDown = true
               }
             }
 
-            this.data.move.lastMovedEnemyIndex = nextEnemyIndexToMove
+            this.move.lastMovedEnemyIndex = nextEnemyIndexToMove
           }
-          this.data.move.lastEnemyMoveTime = Date.now()
+          this.move.lastEnemyMoveTime = Date.now()
 
-          if (Date.now() >= this.data.fire.nextFireTime) {
-            this.data.fire.nextFireTime = Date.now() + Math.getRandomInt(this.data.fire.maxDelay)
+          if (Date.now() >= this.fire.nextFireTime) {
+            this.fire.nextFireTime = Date.now() + Math.getRandomInt(this.fire.maxDelay)
             const enemy = enemies[Math.getRandomInt(enemies.length - 1)]
-            this.data.game.addAt(enemy.data.gameIndex, new Bullet({
+            const bullet = new Bullet({
               tag: ['bullet', 'enemyFire'],
               position: {
-                x: enemy.data.position.x + enemy.data.width / 2 - context.enemyFire.width / 2,
-                y: enemy.data.position.y
+                x: enemy.position.x + enemy.width / 2 - config.enemyFire.width / 2,
+                y: enemy.position.y
               },
-              width: context.enemyFire.width,
-              height: context.enemyFire.height,
+              width: config.enemyFire.width,
+              height: config.enemyFire.height,
               direction: Direction.DOWN,
-              speed: context.enemyFire.speed
-            }))
+              speed: config.enemyFire.speed
+            })
+            const colliderBullet = new Collider(bulletCollider)
+            colliderBullet.setSize(bullet.width, bullet.height)
+            colliderBullet.tag = ['bullet', 'enemyFire']
+            bullet.addCollider(colliderBullet)
+            this.game.addAt(enemy.index, bullet)
           }
         }
       }
 
       removeEnemy(enemy) {
-        const enemies = this.data.game.getByTag('enemy')
+        const enemies = this.game.getByTag('enemy')
         if (enemies.length) {
           const index = enemies.findIndex(e => e == enemy)
           if (index > -1) {
-            this.data.game.remove(enemy)
-            if (index <= this.data.move.lastMovedEnemyIndex) {
-              this.data.move.lastMovedEnemyIndex--
+            this.game.remove(enemy)
+            if (index <= this.move.lastMovedEnemyIndex) {
+              this.move.lastMovedEnemyIndex--
             }
           }
         }
@@ -769,18 +947,25 @@
     class Enemy extends GameObject {
       constructor(args = {}) {
         args.tag = args.tag ?? 'enemy'
-        args.shape = args.shape ?? enemyShape
+        args.shape = args.shape ?? alien1_1Shape
         super(args)
+        this.shapeIndex = 0
       }
 
-      onCollide({ gameObject }) {
-        if (gameObject.hasTag('playerFire')) {
-          const enemyController = this.data.game.getByTag('enemyController')
+      onCollide({ otherCollider }) {
+        if (otherCollider.hasTag('playerFire')) {
+          const enemyController = this.game.getByTag('enemyController')
           if (enemyController.length) {
             enemyController[0].removeEnemy(this)
           }
-          this.data.game.remove(gameObject)
+          this.game.remove(otherCollider.parent)
         }
+      }
+
+      switchShape() {
+        this.shapeIndex++
+        this.shapeIndex = this.shapeIndex % 2
+        this.shape = this.shapeIndex == 0 ? alien1_1Shape : alien1_2Shape
       }
     }
 
@@ -790,22 +975,22 @@
         args.tag = args.tag ?? 'bullet'
         args.shape = args.shape ?? bulletShape
         super(args)
-        this.data.speed = args.speed ?? 120
-        this.data.direction = args.direction ?? Direction.UP
+        this.speed = args.speed ?? 120
+        this.direction = args.direction ?? Direction.UP
       }
 
       onFrame({ deltaTime }) {
-        if (this.data.position.y - this.data.height < 0 || this.data.position.y > context.canvasContext.canvas.height) {
-          this.data.game.remove(this)
+        if (this.position.y - this.height < 0 || this.position.y > config.canvasContext.canvas.height) {
+          this.game.remove(this)
         } else {
-          this.moveTowards(this.data.direction, this.data.speed * deltaTime)
+          this.moveTowards(this.direction, this.speed * deltaTime)
         }
       }
 
-      onCollide({ gameObject }) {
-        if (this.hasTag('enemyFire') && gameObject.hasTag('playerFire')) {
-          this.data.game.remove(this)
-          this.data.game.remove(gameObject)
+      onCollide({ otherCollider }) {
+        if (this.hasTag('enemyFire') && otherCollider.hasTag('playerFire')) {
+          this.game.remove(this)
+          this.game.remove(otherCollider.parent)
         }
       }
     }
@@ -818,9 +1003,9 @@
         super(args)
       }
 
-      onCollide({ gameObject }) {
-        if (gameObject.hasTag('bullet')) {
-          this.data.game.remove(gameObject)
+      onCollide({ otherCollider }) {
+        if (otherCollider.hasTag('bullet')) {
+          this.game.remove(otherCollider.parent)
         }
       }
     }
@@ -850,46 +1035,50 @@
       const canvas = document.getElementById("canvas");
 
       canvasSizePx = Math.min(canvasContainer.offsetWidth, canvasContainer.offsetHeight)
-      context.dp = canvasSizePx / 100
+      config.dp = canvasSizePx / 100
       canvas.width = canvasSizePx;
       canvas.height = canvasSizePx;
-      context.canvasContext = canvas.getContext("2d");
-      enemyMovementArea = { left: 3, right: context.canvas.width - 3, top: 3, bottom: context.canvas.height - 3 }
-      characterSize = ((enemyMovementArea.right - enemyMovementArea.left) - (context.enemyGroup.counts.cols - 1) * context.enemyGroup.spaces.horizontal) / (context.enemyGroup.counts.cols + 2)
+      config.canvasContext = canvas.getContext("2d");
+      enemyMovementArea = { left: 3, right: config.canvas.width - 3, top: 3, bottom: config.canvas.height - 3 }
+      characterSize = ((enemyMovementArea.right - enemyMovementArea.left) - (config.enemyGroup.counts.cols - 1) * config.enemyGroup.spaces.horizontal) / (config.enemyGroup.counts.cols + 2)
 
       window.addEventListener('keydown', function (e) {
         // console.log("keydown e.keyCode:", e.keyCode)
-        context.keyState[e.keyCode || e.which] = true;
-        switch (e.keyCode) {
-          // Space
-          case 32:
-            player?.fire()
-            break
-          // Left
-          case 37:
-            player?.goLeft()
-            break
-          // Right
-          case 39:
-            player?.goRight()
-            break
+        if (game) {
+          game.keyState[e.keyCode || e.which] = true;
+          switch (e.keyCode) {
+            // Space
+            case 32:
+              player?.fire()
+              break
+            // Left
+            case 37:
+              player?.goLeft()
+              break
+            // Right
+            case 39:
+              player?.goRight()
+              break
+          }
         }
       }, true);
       window.addEventListener('keyup', function (e) {
-        context.keyState[e.keyCode || e.which] = false;
-        switch (e.keyCode) {
-          // Left
-          case 37:
-            if (player.data.direction == Direction.LEFT) {
-              player?.stop()
-            }
-            break
-          // Right
-          case 39:
-            if (player.data.direction == Direction.RIGHT) {
-              player?.stop()
-            }
-            break
+        if (game) {
+          game.keyState[e.keyCode || e.which] = false;
+          switch (e.keyCode) {
+            // Left
+            case 37:
+              if (player.direction == Direction.LEFT) {
+                player?.stop()
+              }
+              break
+            // Right
+            case 39:
+              if (player.direction == Direction.RIGHT) {
+                player?.stop()
+              }
+              break
+          }
         }
       }, true);
 
@@ -899,27 +1088,59 @@
     }
 
     function setInitialData() {
-      const { canvas } = context
+      const { canvas } = config
       game = new Game({
         collisionTagPairs: [
           ['playerFire', 'enemy'],
-          ['playerFire', 'barricade'],
           ['playerFire', 'enemyFire'],
           ['enemyFire', 'player'],
-          ['enemyFire', 'barricade'],
+          ['bullet', 'barricade'],
         ]
       })
       game.add(new GameObject({ shape: bgShape, width: canvas.width, height: canvas.height }))
       generateBarricades()
       game.add(new EnemyController())
       generateEnemies()
-      const playerHeight = playerShape.height * (context.player.width / playerShape.width)
+      const playerHeight = playerShape.height * (config.player.width / playerShape.width)
       player = new Player({
-        width: context.player.width,
-        height: playerHeight,
-        position: { x: canvas.width / 2 - context.player.width / 2, y: canvas.height - playerHeight - 3 }
+        width: config.player.width,
+        position: { x: canvas.width / 2 - config.player.width / 2, y: canvas.height - playerHeight - 3 }
       })
+      const colliderPlayer = new Collider(playerCollider)
+      console.log("setInitialData", { 'player.width,': player.width, 'player.height': player.height, 'colliderPlayer.initialData': colliderPlayer.initialData })
+      colliderPlayer.setSize(player.width, player.height)
+      player.addCollider(colliderPlayer)
       game.add(player)
+      // game.add(new GameObject({
+      //   shape: {
+      //     vertecies: poly1[0].map(v => ({ x: v[0], y: v[1] })),
+      //     color: '#ff0000',
+      //     width: 2,
+      //     height: 2,
+      //   },
+      //   scale: 10,
+      //   position: { x: 30, y: 50 }
+      // }))
+      // game.add(new GameObject({
+      //   shape: {
+      //     vertecies: poly2[0].map(v => ({ x: v[0], y: v[1] })),
+      //     color: '#00ff00',
+      //     width: 1,
+      //     height: 1,
+      //   },
+      //   scale: 10,
+      //   position: { x: 30, y: 50 }
+      // }))
+      // game.add(new GameObject({
+      //   shape: {
+      //     vertecies: difference[0][0].map(v => ({ x: v[0], y: v[1] })),
+      //     color: '#0000ff',
+      //     width: 2,
+      //     height: 2,
+      //   },
+      //   scale: 10,
+      //   position: { x: 30, y: 50 }
+      // }))
       game.on('gameOver', () => {
         gameOver()
       })
@@ -927,38 +1148,46 @@
     }
 
     function generateBarricades() {
-      for (let i = 0; i < context.barricade.count; i++) {
-        const width = context.canvas.width / (context.barricade.count * 2)
+      for (let i = 0; i < config.barricade.count; i++) {
+        const width = config.canvas.width / (config.barricade.count * 2)
         const height = barricadeShape.height * (width / barricadeShape.width)
         const barricade = new Barricade({
           width,
           height,
           position: {
             x: width / 2 + width * i * 2,
-            y: context.canvas.width - height - 12
+            y: config.canvas.width - height - 12
           }
         })
+        const colliderBarricade = new Collider(barricadeCollider)
+        console.log("generateBarricades", { 'barricade.width': barricade.width, 'barricade.height': barricade.height })
+        colliderBarricade.setSize(barricade.width, barricade.height)
+        barricade.addCollider(colliderBarricade)
         game.add(barricade)
       }
     }
 
     function generateEnemies() {
-      for (let i = context.enemyGroup.counts.rows - 1; i > -1; i--) {
-        for (let j = 0; j < context.enemyGroup.counts.cols; j++) {
-          game.add(new Enemy({
+      for (let i = config.enemyGroup.counts.rows - 1; i > -1; i--) {
+        for (let j = 0; j < config.enemyGroup.counts.cols; j++) {
+          const enemy = new Enemy({
             width: characterSize,
             height: characterSize,
             position: {
-              x: j * (characterSize + context.enemyGroup.spaces.horizontal) + enemyMovementArea.left,
-              y: i * (characterSize + context.enemyGroup.spaces.vertical) + enemyMovementArea.top
+              x: j * (characterSize + config.enemyGroup.spaces.horizontal) + enemyMovementArea.left,
+              y: i * (characterSize + config.enemyGroup.spaces.vertical) + enemyMovementArea.top
             }
-          }))
+          })
+          const colliderAlien1 = new Collider(alien1Collider)
+          colliderAlien1.setSize(enemy.width, enemy.height)
+          enemy.addCollider(colliderAlien1)
+          game.add(enemy)
         }
       }
     }
 
     function draw() {
-      if (game?.data.isPlaying) {
+      if (game?.isPlaying) {
         game.draw()
         requestAnimationFrame(draw);
       }
