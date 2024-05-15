@@ -18,8 +18,8 @@
   </div>
   <script src="https://cdn.jsdelivr.net/npm/polygon-clipping@0.15.7/dist/polygon-clipping.umd.min.js"></script>
   <script>
-    const poly1 = [[[1, 0], [3, 0], [1, 2], [1, 0]]]
-    const poly2 = [[[0, 0], [2, 0], [1, 1], [0, 0]]]
+    const poly1 = [[[0, 1], [0, 2], [3, 2], [3, 1]]]
+    const poly2 = [[[1, 0], [1, 3], [2, 3], [2, 0]]]
     const difference = this.polygonClipping.difference(poly1, poly2)
     console.log("difference:", difference)
     Math.directionToRadian = (direction) => {
@@ -71,7 +71,7 @@
     })
     const playerCollider = {
       tag: ['player'],
-      vertecies: [[
+      vertices: [[
         [0, 8],
         [0, 4],
         [1, 4],
@@ -88,6 +88,7 @@
         [12, 4],
         [13, 4],
         [13, 8],
+        [0, 8],
       ]],
       width: 8,
       height: 8
@@ -105,11 +106,12 @@
     })
     const alien1Collider = {
       tag: ['enemy'],
-      vertecies: [[
+      vertices: [[
         [0, 0],
         [0, 8],
         [8, 8],
-        [8, 0]
+        [8, 0],
+        [0, 0],
       ]],
       width: 8,
       height: 8
@@ -122,11 +124,12 @@
     })
     const bulletCollider = {
       tag: ['bullet'],
-      vertecies: [[
+      vertices: [[
         [0, 0],
         [0, 3],
         [1, 3],
-        [1, 0]
+        [1, 0],
+        [0, 0],
       ]],
       width: 1,
       height: 3
@@ -139,7 +142,7 @@
     })
     const barricadeCollider = {
       tag: ['barricade'],
-      vertecies: [[
+      vertices: [[
         [0, 6],
         [0, 2],
         [2, 0],
@@ -151,7 +154,8 @@
         [5, 4],
         [3, 4],
         [2, 5],
-        [2, 6]
+        [2, 6],
+        [0, 6],
       ]],
       width: 8,
       height: 6
@@ -199,13 +203,17 @@
       listeners = {
         gameOver: []
       }
+      polygonClipping = undefined
 
-      constructor({ gameObjects, collisionTagPairs } = {}) {
+      constructor({ gameObjects, collisionTagPairs, polygonClipping } = {}) {
         if (gameObjects) {
           this.gameObjects = gameObjects
         }
         if (collisionTagPairs) {
           this.collisionTagPairs = collisionTagPairs
+        }
+        if (polygonClipping) {
+          this.polygonClipping = polygonClipping
         }
       }
 
@@ -352,12 +360,11 @@
                           (collider1.hasTag(pair[1]) && collider2.hasTag(pair[0]))
                       })
                       if (shouldCheck) {
-                        for (let m = 0; m < collider1.vertecies.length; m++) {
-                          for (let n = 0; n < collider2.vertecies.length; n++) {
-                            const vertexGroup1 = collider1.vertecies[m];
-                            const vertexGroup2 = collider2.vertecies[n];
+                        for (let m = 0; m < collider1.vertices.length; m++) {
+                          for (let n = 0; n < collider2.vertices.length; n++) {
+                            const vertexGroup1 = collider1.vertices[m];
+                            const vertexGroup2 = collider2.vertices[n];
                             if (this.polyPolyCollision(vertexGroup1, vertexGroup2)) {
-                              console.log("onCollide")
                               if (gameObject1.onCollide) {
                                 gameObject1.onCollide({
                                   collider: collider1,
@@ -641,18 +648,18 @@
       initialData = {
         width: 0,
         height: 0,
-        vertecies: []
+        vertices: []
       }
       position = { x: 0, y: 0 }
       scenePosition = { x: 0, y: 0 }
       width = 0
       height = 0
       scale = { x: 1, y: 1 }
-      vertecies = []
+      vertices = []
       parent = undefined
 
       constructor(args = {}) {
-        const { tag, vertecies, width, height } = args
+        const { tag, vertices, width, height } = args
         if (tag) {
           if (Array.isArray(tag)) {
             this.tag = tag
@@ -660,16 +667,16 @@
             this.tag.push(tag)
           }
         }
-        if (vertecies) this.vertecies = vertecies
+        if (vertices) this.vertices = vertices
         if (typeof width == 'number') this.width = width
         if (typeof height == 'number') this.height = height
         this.initialData.width = this.width
         this.initialData.height = this.height
-        this.initialData.vertecies = JSON.parse(JSON.stringify(this.vertecies))
+        this.initialData.vertices = JSON.parse(JSON.stringify(this.vertices))
       }
 
-      updateVertecies() {
-        this.vertecies = this.initialData.vertecies.map(vertexGroup => {
+      updateVertices() {
+        this.vertices = this.initialData.vertices.map(vertexGroup => {
           return vertexGroup.map(vertex => {
             const newVertexGroup = []
             // Scale
@@ -702,7 +709,7 @@
           this.scale.y *= y === undefined ? x : y
           this.width *= x
           this.height *= y === undefined ? x : y
-          this.updateVertecies()
+          this.updateVertices()
           return this.scale
         }
         return false
@@ -714,7 +721,7 @@
           this.scale.y = y === undefined ? x : y
           this.width = this.initialData.width * x
           this.height = y === undefined ? this.initialData.height * x : this.initialData.height * y
-          this.updateVertecies()
+          this.updateVertices()
           return this.scale
         }
         return false
@@ -724,7 +731,7 @@
         if (x || y) {
           this.position.x += (x || 0)
           this.position.y += (y || 0)
-          this.updateVertecies()
+          this.updateVertices()
           return this.position
         }
         return false
@@ -738,7 +745,7 @@
           if (y != undefined) {
             this.position.y = y
           }
-          this.updateVertecies()
+          this.updateVertices()
           return this.position
         }
         return false
@@ -749,7 +756,7 @@
           const rad = Math.directionToRadian(this.direction)
           this.position.x += Math.cos(rad) * distance
           this.position.y += Math.sin(rad) * distance
-          this.updateVertecies()
+          this.updateVertices()
           return this.position
         }
         return false
@@ -779,7 +786,7 @@
           x: this.parent.position.x + this.position.x,
           y: this.parent.position.y + this.position.y
         }
-        this.updateVertecies()
+        this.updateVertices()
       }
     }
 
@@ -1003,8 +1010,15 @@
         super(args)
       }
 
-      onCollide({ otherCollider }) {
+      onCollide({ collider, otherCollider }) {
         if (otherCollider.hasTag('bullet')) {
+          const biggerBullet = new Collider({ vertices: otherCollider.vertices, width: otherCollider.width, height: otherCollider.height })
+          console.log("Barricade onCollide biggerBullet.vertices:", biggerBullet.vertices)
+          console.log("Barricade onCollide collider.vertices:", collider.vertices)
+          // biggerBullet.scaleTo(1.5)
+          const difference = this.game.polygonClipping?.difference(collider.vertices, biggerBullet.vertices).map(v1 => v1[0].map(v2 => v2))
+          console.log("Barricade onCollide difference:", difference)
+          collider.vertices = difference
           this.game.remove(otherCollider.parent)
         }
       }
@@ -1095,7 +1109,8 @@
           ['playerFire', 'enemyFire'],
           ['enemyFire', 'player'],
           ['bullet', 'barricade'],
-        ]
+        ],
+        polygonClipping: this.polygonClipping
       })
       game.add(new GameObject({ shape: bgShape, width: canvas.width, height: canvas.height }))
       generateBarricades()
@@ -1107,13 +1122,12 @@
         position: { x: canvas.width / 2 - config.player.width / 2, y: canvas.height - playerHeight - 3 }
       })
       const colliderPlayer = new Collider(playerCollider)
-      console.log("setInitialData", { 'player.width,': player.width, 'player.height': player.height, 'colliderPlayer.initialData': colliderPlayer.initialData })
       colliderPlayer.setSize(player.width, player.height)
       player.addCollider(colliderPlayer)
       game.add(player)
       // game.add(new GameObject({
       //   shape: {
-      //     vertecies: poly1[0].map(v => ({ x: v[0], y: v[1] })),
+      //     vertices: poly1[0].map(v => ({ x: v[0], y: v[1] })),
       //     color: '#ff0000',
       //     width: 2,
       //     height: 2,
@@ -1123,7 +1137,7 @@
       // }))
       // game.add(new GameObject({
       //   shape: {
-      //     vertecies: poly2[0].map(v => ({ x: v[0], y: v[1] })),
+      //     vertices: poly2[0].map(v => ({ x: v[0], y: v[1] })),
       //     color: '#00ff00',
       //     width: 1,
       //     height: 1,
@@ -1133,7 +1147,7 @@
       // }))
       // game.add(new GameObject({
       //   shape: {
-      //     vertecies: difference[0][0].map(v => ({ x: v[0], y: v[1] })),
+      //     vertices: difference[0][0].map(v => ({ x: v[0], y: v[1] })),
       //     color: '#0000ff',
       //     width: 2,
       //     height: 2,
@@ -1160,7 +1174,6 @@
           }
         })
         const colliderBarricade = new Collider(barricadeCollider)
-        console.log("generateBarricades", { 'barricade.width': barricade.width, 'barricade.height': barricade.height })
         colliderBarricade.setSize(barricade.width, barricade.height)
         barricade.addCollider(colliderBarricade)
         game.add(barricade)
